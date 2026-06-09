@@ -6,7 +6,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"math/big"
 	"os"
 	"strings"
 	"time"
@@ -23,13 +22,10 @@ const envPrefix = "CMB"
 var (
 	_ Reader = (*reader)(nil)
 
-	errInvalidRawConfig                           = errors.New("invalid raw config")
-	errEmptyConfigPath                            = errors.New("config path is empty")
-	errInvalidCMAccountAddress                    = errors.New("invalid CM account address")
-	errInvalidBookingTokenAddress                 = errors.New("invalid booking token address")
-	errInvalidNetworkFeeRecipientBotAddress       = errors.New("invalid network fee recipient bot address")
-	errInvalidNetworkFeeRecipientCMAccountAddress = errors.New("invalid network fee recipient CM account address")
-	errInvalidMaxAllowedServiceFee                = errors.New("invalid max allowed service fee")
+	errInvalidRawConfig           = errors.New("invalid raw config")
+	errEmptyConfigPath            = errors.New("config path is empty")
+	errInvalidCMAccountAddress    = errors.New("invalid CM account address")
+	errInvalidBookingTokenAddress = errors.New("invalid booking token address")
 )
 
 type Reader interface {
@@ -113,31 +109,9 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		return nil, errInvalidBookingTokenAddress
 	}
 
-	if !common.IsHexAddress(cfg.NetworkFeeRecipientBotAddress) {
-		return nil, errInvalidNetworkFeeRecipientBotAddress
-	}
-
-	if !common.IsHexAddress(cfg.NetworkFeeRecipientCMAccountAddress) {
-		return nil, errInvalidNetworkFeeRecipientCMAccountAddress
-	}
-
-	maxAllowedServiceFee, ok := new(big.Int).SetString(cfg.MaxAllowedServiceFee, 10)
-	if !ok {
-		return nil, errInvalidMaxAllowedServiceFee
-	}
-	if maxAllowedServiceFee.Sign() < 0 {
-		return nil, errInvalidMaxAllowedServiceFee
-	}
-
 	return &Config{
 		DB: SQLiteDBConfig{
 			Common: cfg.DB,
-			Scheduler: UnparsedSQLiteDBConfig{
-				DBPath: cfg.DB.DBPath + "/scheduler",
-			},
-			ChequeHandler: UnparsedSQLiteDBConfig{
-				DBPath: cfg.DB.DBPath + "/cheque_handler",
-			},
 			EventListener: UnparsedSQLiteDBConfig{
 				DBPath: cfg.DB.DBPath + "/event_listener",
 			},
@@ -154,19 +128,14 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 			Host:  cfg.Matrix.Host,
 			Store: cfg.DB.DBPath + "/matrix",
 		},
-		DeveloperMode:                       cfg.DeveloperMode,
-		E2ETestMode:                         cfg.E2ETestMode,
-		BotKey:                              botKey,
-		CMAccountAddress:                    common.HexToAddress(cfg.CMAccountAddress),
-		ChainRPCURL:                         cfg.ChainRPCURL,
-		BookingTokenAddress:                 common.HexToAddress(cfg.BookingTokenAddress),
-		NetworkFeeRecipientBotAddress:       common.HexToAddress(cfg.NetworkFeeRecipientBotAddress),
-		NetworkFeeRecipientCMAccountAddress: common.HexToAddress(cfg.NetworkFeeRecipientCMAccountAddress),
-		ChequeExpirationTime:                big.NewInt(0).SetUint64(cfg.ChequeExpirationTime),
-		MinChequeDurationUntilExpiration:    big.NewInt(0).SetUint64(cfg.MinChequeDurationUntilExpiration),
-		CashInPeriod:                        time.Duration(cfg.CashInPeriod) * time.Second,
-		MaxAllowedServiceFee:                maxAllowedServiceFee,
-		ResponseTimeout:                     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
-		RecordExpiration:                    cfg.RecordExpiration,
+		DeveloperMode:       cfg.DeveloperMode,
+		E2ETestMode:         cfg.E2ETestMode,
+		BotKey:              botKey,
+		CMAccountAddress:    common.HexToAddress(cfg.CMAccountAddress),
+		ChainRPCURL:         cfg.ChainRPCURL,
+		BookingTokenAddress: common.HexToAddress(cfg.BookingTokenAddress),
+		BotAuthCacheTimeout: time.Duration(cfg.BotAuthCacheTimeout) * time.Second,
+		ResponseTimeout:     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
+		RecordExpiration:    cfg.RecordExpiration,
 	}, nil
 }

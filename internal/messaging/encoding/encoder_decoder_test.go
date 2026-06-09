@@ -7,18 +7,15 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/rand"
-	"math/big"
 	"testing"
 
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/encryption"
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/generated"
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/metadata"
 
 	pingv1 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/ping/v1"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
@@ -78,18 +75,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 
 	requestID := "request-id"
 
-	serviceFeeCheque := &cheques.SignedCheque{
-		Cheque: cheques.Cheque{
-			FromCMAccount: common.Address{4},
-			ToCMAccount:   common.Address{5},
-			ToBot:         recipientBotAddress, // we need correct address here
-			Counter:       big.NewInt(321),
-			Amount:        big.NewInt(987),
-			CreatedAt:     big.NewInt(3030),
-			ExpiresAt:     big.NewInt(4040),
-		},
-		Signature: []byte{6, 7, 8, 9, 10},
-	}
+
 
 	requestMessage := &message.Message{
 		Type: generated.PingServiceV1Request,
@@ -120,7 +106,6 @@ func TestEncodeDecodeV1(t *testing.T) {
 	encodedMessage, err := senderEncoderDecoder.EncodeMessage(
 		ctx,
 		requestMessage,
-		serviceFeeCheque,
 		recipientBotAddress,
 		sharedKey,
 	)
@@ -133,7 +118,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 	recipientStorage.EXPECT().Commit(storageSession).Return(nil)
 	recipientStorage.EXPECT().Abort(storageSession)
 
-	decodedMessage, decodedServiceFeeCheque, sharedKey, err := recipientEncoderDecoder.DecodeAndVerifyMessage( // we can't verify shared key here, because it is a new key
+	decodedMessage, sharedKey, err := recipientEncoderDecoder.DecodeAndVerifyMessage( // we can't verify shared key here, because it is a new key
 		ctx,
 		encodedMessage,
 		senderBotAddress,
@@ -143,7 +128,6 @@ func TestEncodeDecodeV1(t *testing.T) {
 	proto.Reset(requestMessage.Content)
 	proto.Reset(decodedMessage.Content)
 	require.Equal(t, requestMessage, decodedMessage)
-	require.Equal(t, serviceFeeCheque, decodedServiceFeeCheque)
 
 	// recipient encode response (shared key from received request)
 
@@ -152,7 +136,6 @@ func TestEncodeDecodeV1(t *testing.T) {
 	encodedMessage, err = recipientEncoderDecoder.EncodeMessage(
 		ctx,
 		responseMessage,
-		nil,
 		senderBotAddress,
 		sharedKey,
 	)
@@ -165,7 +148,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 	senderStorage.EXPECT().Commit(storageSession).Return(nil)
 	senderStorage.EXPECT().Abort(storageSession)
 
-	decodedMessage, decodedServiceFeeCheque, decodedSharedKey, err := senderEncoderDecoder.DecodeAndVerifyMessage(
+	decodedMessage, decodedSharedKey, err := senderEncoderDecoder.DecodeAndVerifyMessage(
 		ctx,
 		encodedMessage,
 		recipientBotAddress,
@@ -176,5 +159,4 @@ func TestEncodeDecodeV1(t *testing.T) {
 	proto.Reset(decodedMessage.Content)
 	require.Equal(t, responseMessage, decodedMessage)
 	require.Equal(t, sharedKey, decodedSharedKey)
-	require.Nil(t, decodedServiceFeeCheque) // we don't have service fee cheque in response messages
 }

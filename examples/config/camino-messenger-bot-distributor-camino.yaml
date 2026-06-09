@@ -30,21 +30,10 @@ cm_account_address: 0xYOUR_CM_ACCOUNT_ADDRESS
 
 
 
-### Cheque handling
+### Bot authentication cache
 
-cheque_expiration_time: 18144000 # 7 months
-
-min_cheque_duration_until_expiration: 15552000 # 6 months
-
-cash_in_period: 86400 # 1 day
-
-# matrix application service bot address
-network_fee_recipient_bot_address: 0xbeb027D2f439805E17EAA16Da26c1FCa68a30232
-
-# matrix application service cm account address
-network_fee_recipient_cm_account: 0x16DFfB3911BB0b1B53eF4d774804381f0B38B5d7
-
-max_allowed_service_fee: 1000000000000000000 # 1 CAM
+# Cache bot authorization checks on-chain (in seconds)
+bot_auth_cache_timeout: 300
 
 
 

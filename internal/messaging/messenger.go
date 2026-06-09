@@ -6,7 +6,6 @@ package messaging
 import (
 	"context"
 
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -29,7 +28,7 @@ type Messenger interface {
 	Stop() error
 
 	// Should only be called after Start() was called.
-	SendMessage(ctx context.Context, msg *EncodedSignedMessage, sendTo common.Address, networkFeeCheque *cheques.SignedCheque) error
+	SendMessage(ctx context.Context, msg *EncodedSignedMessage, sendTo common.Address, senderCMAccount common.Address) error
 
 	// Channel where incoming messages are written
 	ReceivedMessageChan() chan EncodedSignedMessageWithSender

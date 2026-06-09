@@ -13,7 +13,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/jonboulle/clockwork"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -37,13 +36,9 @@ import (
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/client"
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/rpc/server"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/booking"
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler"
-	chequeHandlerStorage "github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler/storage/sqlite"
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v13/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/erc20"
 	matrixPkg "github.com/chain4travel/camino-messenger-bot/v13/pkg/matrix"
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/scheduler"
-	scheduler_storage "github.com/chain4travel/camino-messenger-bot/v13/pkg/scheduler/storage/sqlite"
 )
 
 const (
@@ -102,6 +97,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		logger,
 		cmAccountsCacheSize,
 		evmClient,
+		cfg.BotAuthCacheTimeout,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cm accounts service: %w", err)
@@ -175,31 +171,7 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, fmt.Errorf("failed to create response handler: %w", err)
 	}
 
-	chequeHandlerStorage, err := chequeHandlerStorage.New(
-		ctx,
-		logger,
-		cfg.DB.ChequeHandler.DBPath,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cheque handler storage: %w", err)
-	}
 
-	chequeHandler, err := chequehandler.NewChequeHandler(
-		ctx,
-		logger,
-		evmClient,
-		cfg.BotKey,
-		cfg.CMAccountAddress,
-		chainID,
-		chequeHandlerStorage,
-		cmAccounts,
-		cfg.MinChequeDurationUntilExpiration,
-		cfg.ChequeExpirationTime,
-		cashInTxIssueTimeout,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cheque handler: %w", err)
-	}
 
 	// get matrix hostname without schema
 	matrixHostname := cfg.Matrix.Host
@@ -276,14 +248,10 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		cfg.ResponseTimeout,
 		botAddress,
 		cfg.CMAccountAddress,
-		cfg.NetworkFeeRecipientBotAddress,
-		cfg.NetworkFeeRecipientCMAccountAddress,
 		serviceRegistry,
 		responseHandler,
 		partnerPlugin,
-		chequeHandler,
 		cmAccounts,
-		cfg.MaxAllowedServiceFee,
 		messagesEncoderDecoder,
 		resolver,
 	)
@@ -327,20 +295,11 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, fmt.Errorf("failed to create rpc server: %w", err)
 	}
 
-	// scheduler for periodic tasks (e.g. cheques cash-in)
 
-	storage, err := scheduler_storage.New(ctx, logger, cfg.DB.Scheduler.DBPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create scheduler storage: %w", err)
-	}
-
-	scheduler := scheduler.New(logger, storage, clockwork.NewRealClock())
 
 	return &App{
 		cfg:              cfg,
 		logger:           logger,
-		scheduler:        scheduler,
-		chequeHandler:    chequeHandler,
 		eventListener:    eventListener,
 		rpcClient:        rpcClient,
 		rpcServer:        rpcServer,
@@ -353,8 +312,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 type App struct {
 	cfg              *config.Config
 	logger           *zap.SugaredLogger
-	scheduler        scheduler.Scheduler
-	chequeHandler    chequehandler.ChequeHandler
 	eventListener    eventlistener.EventListener
 	rpcClient        *client.RPCClient
 	rpcServer        server.Server
@@ -369,19 +326,7 @@ func (a *App) Run(ctx context.Context) error {
 	// run
 
 	messengerStarted := make(chan struct{})
-	cashInStatusCheckDone := make(chan struct{})
-	schedulerStarted := make(chan struct{})
 	messageProcessorStarted := make(chan struct{})
-
-	a.safeGo(g, func() error {
-		a.logger.Info("Starting start-up cash-in status check...")
-		if err := a.chequeHandler.CheckCashInStatus(ctx); err != nil {
-			return fmt.Errorf("failed to do start-up cash-in status check: %w", err)
-		}
-		a.logger.Info("Start-up cash-in status check done.")
-		close(cashInStatusCheckDone)
-		return nil
-	})
 
 	eventListenerStarted := make(chan struct{})
 	a.safeGo(g, func() error {
@@ -402,32 +347,6 @@ func (a *App) Run(ctx context.Context) error {
 	})
 
 	a.safeGo(g, func() error {
-		if !awaitChan(ctx, cashInStatusCheckDone) {
-			return nil
-		}
-		a.logger.Info("Starting scheduler...")
-
-		a.scheduler.RegisterJobHandler(cashInJobName, func() {
-			if err := a.chequeHandler.CashIn(ctx); err != nil && !errors.Is(err, context.Canceled) {
-				a.logger.Errorf("Failed to do scheduled cash in: %v", err)
-				return
-			}
-		})
-
-		if err := a.scheduler.Schedule(ctx, a.cfg.CashInPeriod, cashInJobName); err != nil {
-			return fmt.Errorf("failed to schedule cash in job: %w", err)
-		}
-		if err := a.scheduler.Start(ctx); err != nil {
-			return fmt.Errorf("failed to start scheduler: %w", err)
-		}
-
-		a.logger.Info("Scheduler started.")
-		close(schedulerStarted)
-
-		return nil
-	})
-
-	a.safeGo(g, func() error {
 		a.logger.Info("Starting message processor...")
 		a.messageProcessor.Start(ctx)
 		a.logger.Info("Message processor started.")
@@ -437,8 +356,6 @@ func (a *App) Run(ctx context.Context) error {
 
 	a.safeGo(g, func() error {
 		if !awaitChans(ctx,
-			cashInStatusCheckDone,
-			schedulerStarted,
 			messageProcessorStarted,
 			eventListenerStarted,
 		) {
@@ -526,13 +443,7 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
-	a.safeGo(g, func() error {
-		<-ctx.Done()
-		a.logger.Info("Stopping scheduler...")
-		a.scheduler.Stop()
-		a.logger.Info("Scheduler stopped.")
-		return nil
-	})
+
 
 	a.safeGo(g, func() error {
 		<-ctx.Done()

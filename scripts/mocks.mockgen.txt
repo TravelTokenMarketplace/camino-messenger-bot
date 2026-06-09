@@ -8,5 +8,3 @@ github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/encoding=Sto
 github.com/chain4travel/camino-messenger-bot/v13/internal/resolver=Resolver=internal/resolver/mock_resolver.go
 github.com/chain4travel/camino-messenger-bot/v13/pkg/cm_accounts=Service=pkg/cm_accounts/mock_cm_accounts.go=cmaccounts
 github.com/chain4travel/camino-messenger-bot/v13/pkg/scheduler=Storage=pkg/scheduler/mock_storage.go
-github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler=ChequeHandler=pkg/chequehandler/mock_cheque_handler.go=chequehandler
-github.com/chain4travel/camino-messenger-bot/v13/pkg/chequehandler=Storage=pkg/chequehandler/mock_storage.go=chequehandler

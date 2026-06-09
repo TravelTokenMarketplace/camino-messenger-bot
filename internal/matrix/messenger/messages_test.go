@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/matrix"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -38,9 +37,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 	messageID := "message-id"
 	messageSignature := []byte("signature")
 
-	networkFeeCheque := cheques.SignedCheque{Cheque: cheques.Cheque{
-		FromCMAccount: common.Address{1},
-	}}
+	senderCMAccount := common.Address{1}
 
 	// we will always expect this message chunk to be present in the map unchanged in addition to case-specific expects
 	otherMessageID := "other-message-id"
@@ -69,16 +66,16 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					MessageID: messageID,
 					Data:      []byte("single chunk data"),
 				},
-				ChunksCount:      1,
-				NetworkFeeCheque: networkFeeCheque,
-				Signature:        messageSignature,
+				ChunksCount:            1,
+				SenderCMAccountAddress: senderCMAccount,
+				Signature:              messageSignature,
 			},
 			expectedMessage: messaging.EncodedSignedMessageWithSender{
 				Message: messaging.EncodedSignedMessage{
 					ChunkedEncodedMessage: [][]byte{[]byte("single chunk data")},
 					Signature:             messageSignature,
 				},
-				SenderCMAccountAddress: networkFeeCheque.FromCMAccount,
+				SenderCMAccountAddress: senderCMAccount,
 			},
 			expectedComplete: true,
 		},
@@ -88,15 +85,15 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					MessageID: messageID,
 					Data:      []byte("chunk0"),
 				},
-				ChunksCount:      3,
-				NetworkFeeCheque: networkFeeCheque,
-				Signature:        messageSignature,
+				ChunksCount:            3,
+				SenderCMAccountAddress: senderCMAccount,
+				Signature:              messageSignature,
 			},
 			expectedChunkedMessages: map[string]*chunkedMessage{
 				messageID: {
 					chunksCount:   3,
 					signature:     messageSignature,
-					fromCMAccount: networkFeeCheque.FromCMAccount,
+					fromCMAccount: senderCMAccount,
 					chunks: []messageChunk{
 						{index: 0, data: []byte("chunk0")},
 					},
@@ -109,9 +106,9 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					MessageID: messageID,
 					Data:      []byte("chunk0"),
 				},
-				ChunksCount:      3,
-				NetworkFeeCheque: networkFeeCheque,
-				Signature:        messageSignature,
+				ChunksCount:            3,
+				SenderCMAccountAddress: senderCMAccount,
+				Signature:              messageSignature,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				messageID: {
@@ -124,7 +121,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 				messageID: {
 					chunksCount:   3,
 					signature:     messageSignature,
-					fromCMAccount: networkFeeCheque.FromCMAccount,
+					fromCMAccount: senderCMAccount,
 					chunks: []messageChunk{
 						{index: 1, data: []byte("chunk1")},
 						{index: 0, data: []byte("chunk0")},
@@ -138,9 +135,9 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					MessageID: messageID,
 					Data:      []byte("chunk0"),
 				},
-				ChunksCount:      3,
-				NetworkFeeCheque: networkFeeCheque,
-				Signature:        messageSignature,
+				ChunksCount:            3,
+				SenderCMAccountAddress: senderCMAccount,
+				Signature:              messageSignature,
 			},
 			existingChunkedMessages: map[string]*chunkedMessage{
 				messageID: {
@@ -155,7 +152,7 @@ func TestTryCompleteMessageWithFirstChunk(t *testing.T) {
 					ChunkedEncodedMessage: [][]byte{[]byte("chunk0"), []byte("chunk1"), []byte("chunk2")},
 					Signature:             messageSignature,
 				},
-				SenderCMAccountAddress: networkFeeCheque.FromCMAccount,
+				SenderCMAccountAddress: senderCMAccount,
 			},
 			expectedComplete: true,
 		},

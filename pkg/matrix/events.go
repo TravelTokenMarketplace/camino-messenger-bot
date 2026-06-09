@@ -7,7 +7,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
+	"github.com/ethereum/go-ethereum/common"
 	"maunium.net/go/mautrix/event"
 )
 
@@ -42,9 +42,9 @@ func (e *MessageChunkEventContent) Verify() error {
 type SignedMessageEventContent struct {
 	ChunkData
 
-	ChunksCount      uint32
-	Signature        []byte
-	NetworkFeeCheque cheques.SignedCheque
+	ChunksCount            uint32
+	Signature              []byte
+	SenderCMAccountAddress common.Address
 }
 
 func (e *SignedMessageEventContent) Verify() error {

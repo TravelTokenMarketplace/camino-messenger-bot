@@ -5,12 +5,12 @@ package cmaccounts
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math/big"
+	"sync"
+	"time"
 
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccount"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/cmaccountmanager"
 
@@ -33,37 +33,15 @@ const (
 var (
 	_ Service = &service{}
 
-	chequeOperatorRole                 = crypto.Keccak256Hash([]byte("CHEQUE_OPERATOR_ROLE"))
+	messengerBotRole                   = crypto.Keccak256Hash([]byte("MESSENGER_BOT_ROLE"))
 	managerCMAccountImplementationSlot = common.HexToHash(managerCMAccountImplementationSlotString)
 
 	ErrServiceNotSupported = errors.New("service is not supported")
 )
 
 type Service interface {
-	GetAllChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error)
-
-	VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error)
-
-	// Will not wait for tx to be mined.
-	CashInCheque(
-		ctx context.Context,
-		cheque *cheques.SignedCheque,
-		botKey *ecdsa.PrivateKey,
-	) (common.Hash, error)
-
-	GetServiceFee(
-		ctx context.Context,
-		cmAccountAddress common.Address,
-		serviceFullName string,
-	) (*big.Int, error)
-
-	GetLastCashIn(
-		ctx context.Context,
-		cmAccountAddress common.Address,
-		fromBot common.Address,
-		toBot common.Address,
-		paymentToken common.Address,
-	) (counter *big.Int, amount *big.Int, err error)
+	GetAllMessengerBots(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error)
+	IsBotAllowed(ctx context.Context, cmAccountAddress common.Address, botAddress common.Address) (bool, error)
 
 	MintBookingToken(
 		ctx context.Context,
@@ -96,11 +74,19 @@ type Service interface {
 
 	IsCMAccountImplementationUpToDate(ctx context.Context, cmAccountAddress common.Address) (bool, error)
 
-	GetServiceFeeToken(ctx context.Context, cmAccountAddress common.Address) (common.Address, error)
-
 	CMAccount(common.Address) (*cmaccount.Cmaccount, error)
 
 	Cancellation
+}
+
+type botAuthCacheKey struct {
+	cmAccount common.Address
+	bot       common.Address
+}
+
+type botAuthCacheVal struct {
+	allowed   bool
+	expiresAt time.Time
 }
 
 type service struct {
@@ -108,6 +94,10 @@ type service struct {
 	cache     *lru.Cache[common.Address, *cmaccount.Cmaccount]
 	logger    *zap.SugaredLogger
 	chainID   *big.Int
+
+	botAuthCacheTimeout time.Duration
+	botAuthCacheMu      sync.RWMutex
+	botAuthCache        map[botAuthCacheKey]botAuthCacheVal
 }
 
 func NewService(
@@ -115,6 +105,7 @@ func NewService(
 	logger *zap.SugaredLogger,
 	cacheSize int,
 	ethClient *ethclient.Client,
+	botAuthCacheTimeout time.Duration,
 ) (Service, error) {
 	chainID, err := ethClient.ChainID(ctx)
 	if err != nil {
@@ -127,137 +118,64 @@ func NewService(
 	}
 
 	return &service{
-		ethClient: ethClient,
-		cache:     cache,
-		logger:    logger,
-		chainID:   chainID,
+		ethClient:           ethClient,
+		cache:               cache,
+		logger:              logger,
+		chainID:             chainID,
+		botAuthCacheTimeout: botAuthCacheTimeout,
+		botAuthCache:        make(map[botAuthCacheKey]botAuthCacheVal),
 	}, nil
 }
 
-func (s *service) GetAllChequeOperators(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error) {
+func (s *service) GetAllMessengerBots(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
 		s.logger.Errorf("Failed to get cm account: %v", err)
 		return nil, err
 	}
 
-	botsAddresses, err := cmAccount.GetRoleMembers(&bind.CallOpts{Context: ctx}, chequeOperatorRole)
+	botsAddresses, err := cmAccount.GetRoleMembers(&bind.CallOpts{Context: ctx}, messengerBotRole)
 	if err != nil {
-		s.logger.Errorf("Failed to get cheque operators: %v", err)
+		s.logger.Errorf("Failed to get messenger bots: %v", err)
 		return nil, err
 	}
 
 	return botsAddresses, nil
 }
 
-// Will not wait for tx to be mined.
-func (s *service) CashInCheque(
-	ctx context.Context,
-	cheque *cheques.SignedCheque,
-	botKey *ecdsa.PrivateKey,
-) (common.Hash, error) {
-	cmAccount, err := s.CMAccount(cheque.FromCMAccount)
-	if err != nil {
-		return common.Hash{}, err
+func (s *service) IsBotAllowed(ctx context.Context, cmAccountAddress common.Address, botAddress common.Address) (bool, error) {
+	key := botAuthCacheKey{cmAccount: cmAccountAddress, bot: botAddress}
+
+	s.botAuthCacheMu.RLock()
+	cached, found := s.botAuthCache[key]
+	s.botAuthCacheMu.RUnlock()
+
+	if found && time.Now().Before(cached.expiresAt) {
+		return cached.allowed, nil
 	}
 
-	transactor, err := bind.NewKeyedTransactorWithChainID(botKey, s.chainID)
+	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {
-		return common.Hash{}, fmt.Errorf("failed to create transactor from bot key: %w", err)
-	}
-	transactor.Context = ctx
-
-	tx, err := cmAccount.CashInCheque(
-		transactor,
-		cheque.FromCMAccount,
-		cheque.ToCMAccount,
-		cheque.ToBot,
-		cheque.Counter,
-		cheque.Amount,
-		cheque.CreatedAt,
-		cheque.ExpiresAt,
-		cheque.PaymentToken,
-		cheque.Signature,
-	)
-	if err != nil {
-		return common.Hash{}, fmt.Errorf("failed to cash in cheque: %w", err)
-	}
-
-	return tx.Hash(), nil
-}
-
-func (s *service) VerifyCheque(ctx context.Context, cheque *cheques.SignedCheque) (bool, error) {
-	cmAccount, err := s.CMAccount(cheque.FromCMAccount)
-	if err != nil {
+		s.logger.Errorf("Failed to get cm account: %v", err)
 		return false, err
 	}
 
-	_, err = cmAccount.VerifyCheque(
-		&bind.CallOpts{Context: ctx},
-		cheque.FromCMAccount,
-		cheque.ToCMAccount,
-		cheque.ToBot,
-		cheque.Counter,
-		cheque.Amount,
-		cheque.CreatedAt,
-		cheque.ExpiresAt,
-		cheque.PaymentToken,
-		cheque.Signature,
-	)
-	switch {
-	case err == nil:
-		return true, nil
-	case err.Error() == evmExecutionRevertErrorMessage:
-		return false, nil
-	}
-	return false, fmt.Errorf("failed to verify cheque: %w", err)
-}
-
-func (s *service) GetServiceFee(
-	ctx context.Context,
-	cmAccountAddress common.Address,
-	serviceFullName string,
-) (*big.Int, error) {
-	cmAccount, err := s.CMAccount(cmAccountAddress)
+	allowed, err := cmAccount.IsBotAllowed(&bind.CallOpts{Context: ctx}, botAddress)
 	if err != nil {
-		return nil, err
+		s.logger.Errorf("Failed to check if bot %s is allowed for CM account %s: %v", botAddress.Hex(), cmAccountAddress.Hex(), err)
+		return false, fmt.Errorf("failed to check if bot is allowed: %w", err)
 	}
 
-	serviceFee, err := cmAccount.GetServiceFee(
-		&bind.CallOpts{Context: ctx},
-		serviceFullName,
-	)
-	switch {
-	case err == nil:
-		return serviceFee, nil
-	case err.Error() == evmExecutionRevertErrorMessage:
-		return nil, ErrServiceNotSupported
-	}
-	return nil, fmt.Errorf("failed to get service fee: %w", err)
-}
-
-func (s *service) GetLastCashIn(
-	ctx context.Context,
-	cmAccountAddress common.Address,
-	fromBot common.Address,
-	toBot common.Address,
-	paymentToken common.Address,
-) (counter *big.Int, amount *big.Int, err error) {
-	cmAccount, err := s.CMAccount(cmAccountAddress)
-	if err != nil {
-		return nil, nil, err
+	if s.botAuthCacheTimeout > 0 {
+		s.botAuthCacheMu.Lock()
+		s.botAuthCache[key] = botAuthCacheVal{
+			allowed:   allowed,
+			expiresAt: time.Now().Add(s.botAuthCacheTimeout),
+		}
+		s.botAuthCacheMu.Unlock()
 	}
 
-	lastCashIn, err := cmAccount.GetLastCashIn(
-		&bind.CallOpts{Context: ctx},
-		fromBot,
-		toBot,
-		paymentToken,
-	)
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get last cash in: %w", err)
-	}
-	return lastCashIn.LastCounter, lastCashIn.LastAmount, nil
+	return allowed, nil
 }
 
 func (s *service) MintBookingToken(
@@ -393,25 +311,7 @@ func (s *service) RecordExpiration(
 	return receipt, nil
 }
 
-func (s *service) GetServiceFeeToken(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
-	cmAccount, err := s.CMAccount(cmAccountAddress)
-	if err != nil {
-		return common.Address{}, err
-	}
-	managerAddress, err := cmAccount.GetManagerAddress(&bind.CallOpts{Context: ctx})
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get CM account manager address: %w", err)
-	}
-	manager, err := cmaccountmanager.NewCmaccountmanager(managerAddress, s.ethClient)
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to create CM account manager contract binding: %w", err)
-	}
-	paymentToken, err := manager.GetServiceFeeToken(&bind.CallOpts{Context: ctx})
-	if err != nil {
-		return common.Address{}, fmt.Errorf("failed to get ServiceFeeToken: %w", err)
-	}
-	return paymentToken, nil
-}
+
 
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)

@@ -96,4 +96,7 @@ require (
 	maunium.net/go/mautrix v0.15.1
 )
 
-replace maunium.net/go/mautrix => ./camino-matrix-go
+replace (
+	github.com/chain4travel/camino-messenger-contracts/go/contracts => ../camino-messenger-contracts/go/contracts
+	maunium.net/go/mautrix => ./camino-matrix-go
+)

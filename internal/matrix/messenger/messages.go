@@ -8,7 +8,6 @@ import (
 	"sort"
 
 	"github.com/chain4travel/camino-messenger-bot/v13/internal/messaging"
-	"github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/conversion"
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/matrix"
 	"github.com/ethereum/go-ethereum/common"
@@ -34,7 +33,7 @@ func (b byChunkIndex) Len() int           { return len(b) }
 func (b byChunkIndex) Less(i, j int) bool { return b[i].index < b[j].index }
 func (b byChunkIndex) Swap(i, j int)      { b[i], b[j] = b[j], b[i] }
 
-func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSignedMessage, sendTo common.Address, networkFeeCheque *cheques.SignedCheque) error {
+func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSignedMessage, sendTo common.Address, senderCMAccount common.Address) error {
 	messageID := uuid.New().String()
 
 	m.logger.Debugf("Sending message (id %s) to %s", messageID, sendTo)
@@ -49,9 +48,9 @@ func (m *messenger) SendMessage(ctx context.Context, msg *messaging.EncodedSigne
 			MessageID: messageID,
 			Data:      msg.ChunkedEncodedMessage[0],
 		},
-		Signature:        msg.Signature,
-		NetworkFeeCheque: *networkFeeCheque,
-		ChunksCount:      conversion.MustIntToUInt32(len(msg.ChunkedEncodedMessage)),
+		Signature:              msg.Signature,
+		SenderCMAccountAddress: senderCMAccount,
+		ChunksCount:            conversion.MustIntToUInt32(len(msg.ChunkedEncodedMessage)),
 	}
 
 	var chunkEvents []matrix.MessageChunkEventContent
@@ -149,7 +148,7 @@ func (m *messenger) tryCompleteMessageWithFirstChunk(eventContent *matrix.Signed
 				ChunkedEncodedMessage: [][]byte{eventContent.Data},
 				Signature:             eventContent.Signature,
 			},
-			SenderCMAccountAddress: eventContent.NetworkFeeCheque.FromCMAccount,
+			SenderCMAccountAddress: eventContent.SenderCMAccountAddress,
 		}, true
 	}
 
@@ -180,7 +179,7 @@ func (m *messenger) addMessageFirstChunk(eventContent *matrix.SignedMessageEvent
 
 	message.signature = eventContent.Signature
 	message.chunksCount = eventContent.ChunksCount
-	message.fromCMAccount = eventContent.NetworkFeeCheque.FromCMAccount
+	message.fromCMAccount = eventContent.SenderCMAccountAddress
 
 	return m.addMessageChunk(message, &eventContent.ChunkData, 0)
 }

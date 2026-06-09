@@ -6,7 +6,6 @@ package config
 import (
 	"crypto/ecdsa"
 	"encoding/hex"
-	"math/big"
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -27,13 +26,7 @@ type Config struct {
 	ChainRPCURL         string
 	BookingTokenAddress common.Address
 
-	NetworkFeeRecipientBotAddress       common.Address
-	NetworkFeeRecipientCMAccountAddress common.Address
-
-	ChequeExpirationTime             *big.Int // seconds
-	MinChequeDurationUntilExpiration *big.Int // seconds
-	CashInPeriod                     time.Duration
-	MaxAllowedServiceFee             *big.Int // aCAM
+	BotAuthCacheTimeout time.Duration
 
 	ResponseTimeout time.Duration
 
@@ -47,8 +40,6 @@ type Config struct {
 
 type SQLiteDBConfig struct {
 	Common                 UnparsedSQLiteDBConfig
-	Scheduler              UnparsedSQLiteDBConfig
-	ChequeHandler          UnparsedSQLiteDBConfig
 	EventListener          UnparsedSQLiteDBConfig
 	MessagesEncoderDecoder UnparsedSQLiteDBConfig
 	Resolver               UnparsedSQLiteDBConfig
@@ -92,13 +83,7 @@ type UnparsedConfig struct {
 	ChainRPCURL         string `mapstructure:"chain_rpc_url"`
 	BookingTokenAddress string `mapstructure:"booking_token_address"`
 
-	NetworkFeeRecipientBotAddress       string `mapstructure:"network_fee_recipient_bot_address"`
-	NetworkFeeRecipientCMAccountAddress string `mapstructure:"network_fee_recipient_cm_account"`
-
-	ChequeExpirationTime             uint64 `mapstructure:"cheque_expiration_time"`               // seconds
-	MinChequeDurationUntilExpiration uint64 `mapstructure:"min_cheque_duration_until_expiration"` // seconds
-	CashInPeriod                     int64  `mapstructure:"cash_in_period"`                       // seconds
-	MaxAllowedServiceFee             string `mapstructure:"max_allowed_service_fee"`              // aCAM
+	BotAuthCacheTimeout int64 `mapstructure:"bot_auth_cache_timeout"` // seconds
 
 	ResponseTimeout int64 `mapstructure:"response_timeout"` // milliseconds
 
@@ -127,19 +112,14 @@ func (cfg *Config) unparse() *UnparsedConfig {
 		Matrix: UnparsedMatrixConfig{
 			Host: cfg.Matrix.Host,
 		},
-		DeveloperMode:                       cfg.DeveloperMode,
-		E2ETestMode:                         cfg.E2ETestMode,
-		BotKey:                              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
-		CMAccountAddress:                    cfg.CMAccountAddress.Hex(),
-		ChainRPCURL:                         cfg.ChainRPCURL,
-		BookingTokenAddress:                 cfg.BookingTokenAddress.Hex(),
-		NetworkFeeRecipientBotAddress:       cfg.NetworkFeeRecipientBotAddress.Hex(),
-		NetworkFeeRecipientCMAccountAddress: cfg.NetworkFeeRecipientCMAccountAddress.Hex(),
-		ChequeExpirationTime:                cfg.ChequeExpirationTime.Uint64(),
-		MinChequeDurationUntilExpiration:    cfg.MinChequeDurationUntilExpiration.Uint64(),
-		CashInPeriod:                        int64(cfg.CashInPeriod / time.Second),
-		MaxAllowedServiceFee:                cfg.MaxAllowedServiceFee.String(),
-		ResponseTimeout:                     int64(cfg.ResponseTimeout / time.Millisecond),
-		RecordExpiration:                    cfg.RecordExpiration,
+		DeveloperMode:       cfg.DeveloperMode,
+		E2ETestMode:         cfg.E2ETestMode,
+		BotKey:              hex.EncodeToString(crypto.FromECDSA(cfg.BotKey)),
+		CMAccountAddress:    cfg.CMAccountAddress.Hex(),
+		ChainRPCURL:         cfg.ChainRPCURL,
+		BookingTokenAddress: cfg.BookingTokenAddress.Hex(),
+		BotAuthCacheTimeout: int64(cfg.BotAuthCacheTimeout / time.Second),
+		ResponseTimeout:     int64(cfg.ResponseTimeout / time.Millisecond),
+		RecordExpiration:    cfg.RecordExpiration,
 	}
 }

@@ -25,12 +25,7 @@ func Flags() *pflag.FlagSet {
 	flags.String("cm_account_address", "", "Sets bot cm account address.")
 	flags.String("chain_rpc_url", "", "C-chain RPC URL.")
 	flags.String("booking_token_address", "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address.")
-	flags.String("network_fee_recipient_bot_address", "", "Network fee recipient bot address.")
-	flags.String("network_fee_recipient_cm_account", "", "Network fee recipient CMAccount address.")
-	flags.Uint64("cheque_expiration_time", 3600*24*30*7, "Cheque expiration time (in seconds).")
-	flags.Uint64("min_cheque_duration_until_expiration", 3600*24*30*6, "Minimum valid duration until cheque expiration (in seconds).")
-	flags.Int64("cash_in_period", 3600*24, "Cash-in period (in seconds).")
-	flags.String("max_allowed_service_fee", "1000000000000000000", "Maximum allowed service fee (in aCAM).")
+	flags.Int64("bot_auth_cache_timeout", 300, "Duration in seconds to cache bot authorizations.")
 	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
 
 	// DB config flags

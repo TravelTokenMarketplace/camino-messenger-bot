@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	cheques "github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -56,7 +55,7 @@ func (mr *MockMessengerMockRecorder) ReceivedMessageChan() *gomock.Call {
 }
 
 // SendMessage mocks base method.
-func (m *MockMessenger) SendMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address, arg3 *cheques.SignedCheque) error {
+func (m *MockMessenger) SendMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2, arg3 common.Address) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendMessage", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(error)

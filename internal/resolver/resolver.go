@@ -90,7 +90,7 @@ func (r *resolver) GetBotAddress(ctx context.Context, recipientCMAccount common.
 
 	r.logger.Infof("no unknown status bot found for recipient CM account %s in db, fetching bots from blockchain", recipientCMAccount.Hex())
 
-	recipientBots, err := r.cmAccounts.GetAllChequeOperators(ctx, recipientCMAccount)
+	recipientBots, err := r.cmAccounts.GetAllMessengerBots(ctx, recipientCMAccount)
 	if err != nil {
 		return common.Address{}, err
 	}

@@ -15,7 +15,6 @@ import (
 
 	encryption "github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/encryption"
 	message "github.com/chain4travel/camino-messenger-bot/v13/internal/messaging/message"
-	cheques "github.com/chain4travel/camino-messenger-bot/v13/pkg/cheques"
 	common "github.com/ethereum/go-ethereum/common"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -44,14 +43,13 @@ func (m *MockEncoderDecoder) EXPECT() *MockEncoderDecoderMockRecorder {
 }
 
 // DecodeAndVerifyMessage mocks base method.
-func (m *MockEncoderDecoder) DecodeAndVerifyMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address) (*message.Message, *cheques.SignedCheque, encryption.Key, error) {
+func (m *MockEncoderDecoder) DecodeAndVerifyMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address) (*message.Message, encryption.Key, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecodeAndVerifyMessage", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*message.Message)
-	ret1, _ := ret[1].(*cheques.SignedCheque)
-	ret2, _ := ret[2].(encryption.Key)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
+	ret1, _ := ret[1].(encryption.Key)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // DecodeAndVerifyMessage indicates an expected call of DecodeAndVerifyMessage.
@@ -61,16 +59,16 @@ func (mr *MockEncoderDecoderMockRecorder) DecodeAndVerifyMessage(arg0, arg1, arg
 }
 
 // EncodeMessage mocks base method.
-func (m *MockEncoderDecoder) EncodeMessage(arg0 context.Context, arg1 *message.Message, arg2 *cheques.SignedCheque, arg3 common.Address, arg4 encryption.Key) (*EncodedSignedMessage, error) {
+func (m *MockEncoderDecoder) EncodeMessage(arg0 context.Context, arg1 *message.Message, arg2 common.Address, arg3 encryption.Key) (*EncodedSignedMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EncodeMessage", arg0, arg1, arg2, arg3, arg4)
+	ret := m.ctrl.Call(m, "EncodeMessage", arg0, arg1, arg2, arg3)
 	ret0, _ := ret[0].(*EncodedSignedMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EncodeMessage indicates an expected call of EncodeMessage.
-func (mr *MockEncoderDecoderMockRecorder) EncodeMessage(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
+func (mr *MockEncoderDecoderMockRecorder) EncodeMessage(arg0, arg1, arg2, arg3 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeMessage", reflect.TypeOf((*MockEncoderDecoder)(nil).EncodeMessage), arg0, arg1, arg2, arg3, arg4)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeMessage", reflect.TypeOf((*MockEncoderDecoder)(nil).EncodeMessage), arg0, arg1, arg2, arg3)
 }
