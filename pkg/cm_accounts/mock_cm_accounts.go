@@ -180,6 +180,21 @@ func (mr *MockServiceMockRecorder) IsCMAccountImplementationUpToDate(arg0, arg1 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsCMAccountImplementationUpToDate", reflect.TypeOf((*MockService)(nil).IsCMAccountImplementationUpToDate), arg0, arg1)
 }
 
+// IsServiceSupported mocks base method.
+func (m *MockService) IsServiceSupported(arg0 context.Context, arg1 common.Address, arg2 string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsServiceSupported", arg0, arg1, arg2)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsServiceSupported indicates an expected call of IsServiceSupported.
+func (mr *MockServiceMockRecorder) IsServiceSupported(arg0, arg1, arg2 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsServiceSupported", reflect.TypeOf((*MockService)(nil).IsServiceSupported), arg0, arg1, arg2)
+}
+
 // MintBookingToken mocks base method.
 func (m *MockService) MintBookingToken(arg0 context.Context, arg1 *bind.TransactOpts, arg2, arg3 common.Address, arg4 string, arg5, arg6 *big.Int, arg7 common.Address, arg8 *big.Int, arg9 bool) (*types.Receipt, error) {
 	m.ctrl.T.Helper()

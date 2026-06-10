@@ -205,6 +205,18 @@ func (p *messageProcessor) SendRequestMessage(
 		return nil, fmt.Errorf("%w: failed to resolve bot address for CM account %s: %w", rpc.ErrBusinessProcess, recipientCMAccount.Hex(), err)
 	}
 
+	supported, err := p.cmAccounts.IsServiceSupported(ctx, recipientCMAccount, requestMsg.Type.ToServiceName())
+	if err != nil {
+		err = fmt.Errorf("failed to check service support for service %s: %w", requestMsg.Type.ToServiceName(), err)
+		p.logger.Error(err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBlockchain, err)
+	}
+	if !supported {
+		err = fmt.Errorf("service %s not supported by CMAccount %s: %w", requestMsg.Type.ToServiceName(), recipientCMAccount.Hex(), cmaccounts.ErrServiceNotSupported)
+		p.logger.Debug(err)
+		return nil, fmt.Errorf("%w: %w", rpc.ErrBusinessProcess, err)
+	}
+
 	p.responseHandler.PrepareRequest(requestMsg.Content)
 
 	sharedKey, err := encryption.NewKey()

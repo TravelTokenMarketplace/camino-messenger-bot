@@ -246,6 +246,7 @@ func TestSendRequestMessage(t *testing.T) {
 		"Messenger failed to send message": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
 				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(true, nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, ownCMAccount).Return(testErr)
@@ -262,6 +263,7 @@ func TestSendRequestMessage(t *testing.T) {
 		"Response timeout": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
 				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(true, nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, ownCMAccount).Return(nil)
@@ -279,6 +281,7 @@ func TestSendRequestMessage(t *testing.T) {
 		"OK": {
 			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
 				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(true, nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
 				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, ownCMAccount).Return(nil)
@@ -304,6 +307,34 @@ func TestSendRequestMessage(t *testing.T) {
 				}
 			},
 			expectedResponseMessage: responseMessage,
+		},
+		"Service not supported on-chain": {
+			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
+				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(false, nil)
+			},
+			args: args{
+				msg: &message.Message{
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
+				},
+				recipientCMAccount: recipientCMAccount,
+			},
+			expectedErr: cmaccounts.ErrServiceNotSupported,
+		},
+		"Service check blockchain error": {
+			messageProcessorArgs: func(pArgs *messageProcessorArgs, a args) {
+				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
+				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(false, testErr)
+			},
+			args: args{
+				msg: &message.Message{
+					Type:       generated.PingServiceV1Request,
+					Timestamps: metadata.Timestamps{},
+				},
+				recipientCMAccount: recipientCMAccount,
+			},
+			expectedErr: rpc.ErrBlockchain,
 		},
 	}
 

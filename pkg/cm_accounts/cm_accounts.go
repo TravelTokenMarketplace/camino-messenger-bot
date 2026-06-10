@@ -42,6 +42,7 @@ var (
 type Service interface {
 	GetAllMessengerBots(ctx context.Context, cmAccountAddress common.Address) ([]common.Address, error)
 	IsBotAllowed(ctx context.Context, cmAccountAddress common.Address, botAddress common.Address) (bool, error)
+	IsServiceSupported(ctx context.Context, cmAccountAddress common.Address, serviceFullName string) (bool, error)
 
 	MintBookingToken(
 		ctx context.Context,
@@ -176,6 +177,23 @@ func (s *service) IsBotAllowed(ctx context.Context, cmAccountAddress common.Addr
 	}
 
 	return allowed, nil
+}
+
+func (s *service) IsServiceSupported(ctx context.Context, cmAccountAddress common.Address, serviceFullName string) (bool, error) {
+	cmAccount, err := s.CMAccount(cmAccountAddress)
+	if err != nil {
+		s.logger.Errorf("Failed to get cm account: %v", err)
+		return false, err
+	}
+
+	_, err = cmAccount.GetServiceFee(&bind.CallOpts{Context: ctx}, serviceFullName)
+	switch {
+	case err == nil:
+		return true, nil
+	case err.Error() == evmExecutionRevertErrorMessage:
+		return false, nil
+	}
+	return false, fmt.Errorf("failed to check service support: %w", err)
 }
 
 func (s *service) MintBookingToken(
