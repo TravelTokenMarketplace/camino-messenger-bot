@@ -102,17 +102,6 @@ func getPaymentTokenFromPriceV5(t *testing.T, price *typesv5.Price) common.Addre
 	return common.Address{}
 }
 
-var (
-	c4tFeeCutNominator   = big.NewInt(10) // 10% fee cut for C4T
-	c4tFeeCutDenominator = big.NewInt(100)
-)
-
-func calculateCashIn(value *big.Int) (cashedIn *big.Int, c4tFeeCut *big.Int) { //nolint:unparam // c4tFeeCut is needed for logic clarity at least
-	c4tFeeCut = big.NewInt(0).Mul(value, c4tFeeCutNominator)
-	c4tFeeCut.Div(c4tFeeCut, c4tFeeCutDenominator)
-	return big.NewInt(0).Sub(value, c4tFeeCut), c4tFeeCut
-}
-
 func requireProtoSlicesElementsMatch[T proto.Message](t *testing.T, expected, actual []T) {
 	t.Helper()
 	protoMarshal := proto.MarshalOptions{Deterministic: true}

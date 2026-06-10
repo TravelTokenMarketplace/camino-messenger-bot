@@ -61,8 +61,6 @@ func TestProcessIncomingMessage(t *testing.T) {
 	ownBot := ethCommon.Address{3}
 	ownCMAccount := ethCommon.Address{4}
 
-	const serviceName = "dummy"
-
 	responseMessage := &message.Message{
 		Type:       generated.PingServiceV1Response,
 		RequestID:  requestID,
@@ -394,7 +392,6 @@ func TestStart(t *testing.T) {
 	}
 	incomingMessages = append(incomingMessages, encodedRequestMsg)
 
-	const serviceName = "dummy"
 	rpcService := rpc.NewMockService(c)
 
 	responseMessage := &message.Message{
