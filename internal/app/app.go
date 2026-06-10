@@ -171,8 +171,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 		return nil, fmt.Errorf("failed to create response handler: %w", err)
 	}
 
-
-
 	// get matrix hostname without schema
 	matrixHostname := cfg.Matrix.Host
 	if !strings.Contains(matrixHostname, "://") {
@@ -294,8 +292,6 @@ func NewApp(ctx context.Context, cfg *config.Config, logger *zap.SugaredLogger) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create rpc server: %w", err)
 	}
-
-
 
 	return &App{
 		cfg:              cfg,
@@ -442,8 +438,6 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Info("Matrix messenger stopped.")
 		return nil
 	})
-
-
 
 	a.safeGo(g, func() error {
 		<-ctx.Done()

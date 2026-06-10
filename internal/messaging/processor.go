@@ -89,20 +89,20 @@ func NewMessageProcessor(
 }
 
 type messageProcessor struct {
-	responseTimeout time.Duration // timeout after which a request is considered failed
-	botAddress      ethCommon.Address
+	responseTimeout  time.Duration // timeout after which a request is considered failed
+	botAddress       ethCommon.Address
 	cmAccountAddress ethCommon.Address
 
-	messenger        Messenger
-	logger           *zap.SugaredLogger
+	messenger            Messenger
+	logger               *zap.SugaredLogger
 	responseChannelsLock sync.RWMutex
-	responseChannels map[string]chan *message.Message
-	serviceRegistry  ServiceRegistry
-	responseHandler  ResponseHandler
-	partnerPlugin    partnerplugin.PartnerPlugin
-	cmAccounts       cmaccounts.Service
-	encoderDecoder   EncoderDecoder
-	resolver         resolver.Resolver
+	responseChannels     map[string]chan *message.Message
+	serviceRegistry      ServiceRegistry
+	responseHandler      ResponseHandler
+	partnerPlugin        partnerplugin.PartnerPlugin
+	cmAccounts           cmaccounts.Service
+	encoderDecoder       EncoderDecoder
+	resolver             resolver.Resolver
 }
 
 func (p *messageProcessor) Start(ctx context.Context) {
@@ -341,8 +341,6 @@ func (p *messageProcessor) forwardToHandler(msg *message.Message) error {
 	close(responseChan)
 	return nil
 }
-
-
 
 func (p *messageProcessor) getResponseChannel(requestID string) (chan *message.Message, bool) {
 	p.responseChannelsLock.RLock()

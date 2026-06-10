@@ -311,8 +311,6 @@ func (s *service) RecordExpiration(
 	return receipt, nil
 }
 
-
-
 func (s *service) getLatestCMAccountImplementation(ctx context.Context, cmAccountAddress common.Address) (common.Address, error) {
 	cmAccount, err := s.CMAccount(cmAccountAddress)
 	if err != nil {

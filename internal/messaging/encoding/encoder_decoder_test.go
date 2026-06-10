@@ -75,8 +75,6 @@ func TestEncodeDecodeV1(t *testing.T) {
 
 	requestID := "request-id"
 
-
-
 	requestMessage := &message.Message{
 		Type: generated.PingServiceV1Request,
 		Content: &pingv1.PingRequest{
