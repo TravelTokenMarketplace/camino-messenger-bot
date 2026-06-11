@@ -4,14 +4,14 @@ set -e
 
 CAMINOGO_REPO="https://github.com/chain4travel/caminogo"
 CONDUIT_REPO="https://github.com/chain4travel/camino-conduit"
-ASB_REPO="https://github.com/chain4travel/camino-matrix-app-service"
+ASB_REPO="https://github.com/TravelTokenMarketplace/camino-matrix-app-service"
 
 default_version="latest"
 FALLBACK_BRANCH="dev"
 
 CAMINOGO_VERSION="$default_version"
 CONDUIT_VERSION="$default_version"
-ASB_VERSION="$FALLBACK_BRANCH" # temporary workaround until ASB releases are available
+ASB_VERSION="feature/fee-removal"
 
 BUILD_SCRIPT="./scripts/build.sh"
 

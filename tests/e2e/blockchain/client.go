@@ -504,7 +504,6 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to issue cmAccountManager.GrantRole (serviceRegistryAdminRole): %w", err)
 	}
 
-
 	bookingTokenProxyAddress, bookingTokenProxyTx, _, err := erc1967proxy.DeployErc1967proxy(
 		transactor,
 		c.ethClient,
@@ -572,8 +571,6 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 		return fmt.Errorf("failed to issue bookingToken.SetMinExpirationTimestampDiff tx: %w", err)
 	}
 
-
-
 	if _, err := c.waitTxSucceed(ctx, setBookingTokenAddressTx); err != nil {
 		return fmt.Errorf("failed to wait for cmAccountManager.SetBookingTokenAddress tx to succeed: %w", err)
 	}
@@ -586,7 +583,6 @@ func (c *Client) prepareCMBContracts(ctx context.Context) error {
 	if _, err := c.waitTxSucceed(ctx, updateExpirationTx); err != nil {
 		return fmt.Errorf("failed to wait for bookingToken.SetMinExpirationTimestampDiff tx to succeed: %w", err)
 	}
-
 
 	c.bookingTokenContractAddress = bookingTokenProxyAddress
 
