@@ -97,6 +97,6 @@ require (
 )
 
 replace (
-	github.com/chain4travel/camino-messenger-contracts/go/contracts => github.com/TravelTokenMarketplace/camino-messenger-contracts/go/contracts v0.0.0-20260611123253-b3a4824fe128
+	github.com/chain4travel/camino-messenger-contracts/go/contracts => github.com/TravelTokenMarketplace/camino-messenger-contracts/go/contracts v0.0.0-20260611123903-2e332b7621cc
 	maunium.net/go/mautrix => ./camino-matrix-go
 )
