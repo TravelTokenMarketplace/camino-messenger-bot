@@ -186,14 +186,7 @@ func (s *service) IsServiceSupported(ctx context.Context, cmAccountAddress commo
 		return false, err
 	}
 
-	_, err = cmAccount.GetServiceFee(&bind.CallOpts{Context: ctx}, serviceFullName)
-	switch {
-	case err == nil:
-		return true, nil
-	case err.Error() == evmExecutionRevertErrorMessage:
-		return false, nil
-	}
-	return false, fmt.Errorf("failed to check service support: %w", err)
+	return cmAccount.IsServiceSupported(&bind.CallOpts{Context: ctx}, serviceFullName)
 }
 
 func (s *service) MintBookingToken(

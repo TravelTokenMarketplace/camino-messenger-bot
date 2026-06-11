@@ -97,13 +97,13 @@ func (tt *TestSeatMapV4) prepare(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.TransportProductListServiceV4, Fee: 100},
-			{Name: botGenerated.TransportSearchServiceV4, Fee: 110},
-			{Name: botGenerated.ActivitySearchServiceV4, Fee: 120},
-			{Name: botGenerated.ValidationServiceV4, Fee: 130},
-			{Name: botGenerated.MintServiceV4, Fee: 140},
-			{Name: botGenerated.SeatMapServiceV4, Fee: 150},
-			{Name: botGenerated.SeatMapAvailabilityServiceV4, Fee: 160},
+			{Name: botGenerated.TransportProductListServiceV4},
+			{Name: botGenerated.TransportSearchServiceV4},
+			{Name: botGenerated.ActivitySearchServiceV4},
+			{Name: botGenerated.ValidationServiceV4},
+			{Name: botGenerated.MintServiceV4},
+			{Name: botGenerated.SeatMapServiceV4},
+			{Name: botGenerated.SeatMapAvailabilityServiceV4},
 		}),
 	)
 	var err error

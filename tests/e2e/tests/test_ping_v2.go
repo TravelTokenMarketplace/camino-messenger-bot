@@ -56,7 +56,7 @@ func (tt *TestPingV2) prepare(ctx context.Context, t *testing.T) {
 
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 	)
 
 	// bot without partnerPlugin and with rpc server (distributor)

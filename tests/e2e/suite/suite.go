@@ -181,6 +181,9 @@ func (s *Suite) SetupEnvironment(t *testing.T, test Test) *Environment {
 }
 
 func (s *Suite) Cleanup(t *testing.T, e *Environment) {
+	if e == nil {
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer cancel()
 

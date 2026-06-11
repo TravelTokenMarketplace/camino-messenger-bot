@@ -93,14 +93,14 @@ func (tt *TestAccommodationV5) prepare(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	tt.supplierBot = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationProductShortListServiceV5, Fee: 100},
-			{Name: botGenerated.AccommodationProductListServiceV5, Fee: 110},
-			{Name: botGenerated.AccommodationProductInfoServiceV5, Fee: 120},
-			{Name: botGenerated.AccommodationSearchServiceV5, Fee: 130},
-			{Name: botGenerated.ValidationServiceV5, Fee: 140},
-			{Name: botGenerated.MintServiceV5, Fee: 150},
+			{Name: botGenerated.AccommodationProductShortListServiceV5},
+			{Name: botGenerated.AccommodationProductListServiceV5},
+			{Name: botGenerated.AccommodationProductInfoServiceV5},
+			{Name: botGenerated.AccommodationSearchServiceV5},
+			{Name: botGenerated.ValidationServiceV5},
+			{Name: botGenerated.MintServiceV5},
 		}),
 	)
 

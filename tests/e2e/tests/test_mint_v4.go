@@ -78,9 +78,9 @@ func (tt *TestMintV4) prepare(ctx context.Context, t *testing.T) {
 	// bot with partnerPlugin and without rpc server (supplier)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationSearchServiceV4, Fee: 120},
-			{Name: botGenerated.ValidationServiceV4, Fee: 130},
-			{Name: botGenerated.MintServiceV4, Fee: 140},
+			{Name: botGenerated.AccommodationSearchServiceV4},
+			{Name: botGenerated.ValidationServiceV4},
+			{Name: botGenerated.MintServiceV4},
 		}),
 	)
 

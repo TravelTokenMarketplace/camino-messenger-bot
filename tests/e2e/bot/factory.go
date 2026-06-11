@@ -103,7 +103,6 @@ func WithServices(services []CMService) Option {
 
 type CMService struct {
 	Name string
-	Fee  int64
 }
 
 func (f *Factory) CreateBot(
@@ -152,7 +151,7 @@ func (f *Factory) CreateBot(
 
 			if !options.skips.ServiceRegistration {
 				for _, service := range options.services {
-					if err := f.networkClient.AddCMService(ctx, cmAccountAddress, cmAccountOwnerKey, service.Name, service.Fee); err != nil {
+					if err := f.networkClient.AddCMService(ctx, cmAccountAddress, cmAccountOwnerKey, service.Name); err != nil {
 						return nil, fmt.Errorf("failed to add %s service to CM account: %w", service.Name, err)
 					}
 				}

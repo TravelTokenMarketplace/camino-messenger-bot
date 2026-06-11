@@ -81,10 +81,10 @@ func (tt *TestCancellationV1) prepare(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.AccommodationSearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV3, Fee: 130},
-			{Name: botGenerated.MintServiceV3, Fee: 140},
-			{Name: botGenerated.CheckCancellationServiceV1, Fee: 150},
+			{Name: botGenerated.AccommodationSearchServiceV3},
+			{Name: botGenerated.ValidationServiceV3},
+			{Name: botGenerated.MintServiceV3},
+			{Name: botGenerated.CheckCancellationServiceV1},
 		}),
 	)
 	tt.supplierPPEventStream, err = tt.supplierPartnerPlugin.SubscribeForEvents(ctx)

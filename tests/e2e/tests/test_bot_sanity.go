@@ -37,7 +37,6 @@ type TestBotSanity struct {
 	supplierPartnerPlugin             *partnerplugin.PartnerPlugin
 	distributorBot                    *bot.Bot
 	supplierBot                       *bot.Bot
-	supplierBotWithBigFee             *bot.Bot
 	supplierBotUnregistered           *bot.Bot
 	supplierBotUnregisteredNoServices *bot.Bot
 	supplierBotNoServices             *bot.Bot
@@ -59,7 +58,7 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 		// as the CM-Account-Manager services are not registered yet and the
 		// factory tries to register a service which is not available
 		err := tt.CreateBotWithError(ctx, false, tt.supplierPartnerPlugin,
-			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 		)
 		require.ErrorContains(t, err, blockchain.ErrorAddServiceTxFailed.Error())
 	})
@@ -70,7 +69,7 @@ func (tt *TestBotSanity) Run(t *testing.T) {
 		// This should fail already when the bot starts up as there is no
 		// CM-Account to use - we check that accordingly with the return value
 		tt.CreateBotAwaitError(ctx, t, false, tt.supplierPartnerPlugin, "exit status 1", 5*time.Second,
-			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
+			bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 			bot.WithSkips(&bot.Skip{CMAccountCreation: true}),
 		)
 	})
@@ -102,7 +101,7 @@ func (tt *TestBotSanity) prepareBeforeCMManagerRegisterServices(ctx context.Cont
 	// But the CM-Account is created - therefore the creation in the context
 	// of the test should work but later when trying to use the bot it should fail
 	tt.supplierBotUnregisteredNoServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 		bot.WithSkips(&bot.Skip{PrefundOwner: true}),
 	)
 }
@@ -118,7 +117,7 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	// With that the distributor bot should not be able to find the supplier bot
 	// and fail with an error in a later test
 	tt.supplierBotUnregistered = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 		bot.WithSkips(&bot.Skip{BotRegistration: true}),
 	)
 
@@ -128,29 +127,22 @@ func (tt *TestBotSanity) prepareAfterCMManagerRegisterServices(ctx context.Conte
 	// inside of the logs. We can later use this bot to check if the distributor
 	// bot acts correctly by rejecting this supplier bot as the required service is missing
 	tt.supplierBotNoServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 		bot.WithSkips(&bot.Skip{ServiceRegistration: true}),
 	)
 
 	// All good here - just a different service used which should then
 	// fail in the later test
 	tt.supplierBotDifferentServices = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV4, Fee: 100}}),
+		bot.WithServices([]bot.CMService{{Name: botGenerated.MintServiceV4}}),
 	)
 
 	// bot without partnerPlugin and with rpc server (distributor)
 	tt.distributorBot = tt.CreateBot(ctx, t, true, nil)
 
 	// bot with partnerPlugin and without rpc server (supplier)
-	tt.supplierBot = tt.CreateBot(ctx, t, false, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 100}}),
-	)
-
-	// bot with partnerPlugin (supplier), with ping service fee being very high
-	// this is needed, because conduit matrix server marshals json content of message and fails,
-	// if json contains numbers bigger than javaScript safe integer limit (2^53-1)
-	tt.supplierBotWithBigFee = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
-		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2, Fee: 18014398509481984}}), // 2^54 > 2^53-1
+	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
+		bot.WithServices([]bot.CMService{{Name: botGenerated.PingServiceV2}}),
 	)
 }
 

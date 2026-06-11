@@ -99,11 +99,11 @@ func (tt *TestActivityV3) prepare(ctx context.Context, t *testing.T) {
 	tt.supplierPartnerPlugin = tt.CreatePartnerPlugin(ctx, t)
 	tt.supplierBot = tt.CreateBot(ctx, t, true, tt.supplierPartnerPlugin,
 		bot.WithServices([]bot.CMService{
-			{Name: botGenerated.ActivityProductListServiceV3, Fee: 100},
-			{Name: botGenerated.ActivityProductInfoServiceV3, Fee: 110},
-			{Name: botGenerated.ActivitySearchServiceV3, Fee: 120},
-			{Name: botGenerated.ValidationServiceV3, Fee: 130},
-			{Name: botGenerated.MintServiceV3, Fee: 140},
+			{Name: botGenerated.ActivityProductListServiceV3},
+			{Name: botGenerated.ActivityProductInfoServiceV3},
+			{Name: botGenerated.ActivitySearchServiceV3},
+			{Name: botGenerated.ValidationServiceV3},
+			{Name: botGenerated.MintServiceV3},
 		}),
 	)
 
