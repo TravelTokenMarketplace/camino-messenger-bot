@@ -43,13 +43,14 @@ func (m *MockEncoderDecoder) EXPECT() *MockEncoderDecoderMockRecorder {
 }
 
 // DecodeAndVerifyMessage mocks base method.
-func (m *MockEncoderDecoder) DecodeAndVerifyMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address) (*message.Message, encryption.Key, error) {
+func (m *MockEncoderDecoder) DecodeAndVerifyMessage(arg0 context.Context, arg1 *EncodedSignedMessage, arg2 common.Address) (*message.Message, encryption.Key, common.Address, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DecodeAndVerifyMessage", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*message.Message)
 	ret1, _ := ret[1].(encryption.Key)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret2, _ := ret[2].(common.Address)
+	ret3, _ := ret[3].(error)
+	return ret0, ret1, ret2, ret3
 }
 
 // DecodeAndVerifyMessage indicates an expected call of DecodeAndVerifyMessage.
@@ -59,16 +60,16 @@ func (mr *MockEncoderDecoderMockRecorder) DecodeAndVerifyMessage(arg0, arg1, arg
 }
 
 // EncodeMessage mocks base method.
-func (m *MockEncoderDecoder) EncodeMessage(arg0 context.Context, arg1 *message.Message, arg2 common.Address, arg3 encryption.Key) (*EncodedSignedMessage, error) {
+func (m *MockEncoderDecoder) EncodeMessage(arg0 context.Context, arg1 *message.Message, arg2 common.Address, arg3 encryption.Key, arg4 common.Address) (*EncodedSignedMessage, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EncodeMessage", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "EncodeMessage", arg0, arg1, arg2, arg3, arg4)
 	ret0, _ := ret[0].(*EncodedSignedMessage)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EncodeMessage indicates an expected call of EncodeMessage.
-func (mr *MockEncoderDecoderMockRecorder) EncodeMessage(arg0, arg1, arg2, arg3 any) *gomock.Call {
+func (mr *MockEncoderDecoderMockRecorder) EncodeMessage(arg0, arg1, arg2, arg3, arg4 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeMessage", reflect.TypeOf((*MockEncoderDecoder)(nil).EncodeMessage), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeMessage", reflect.TypeOf((*MockEncoderDecoder)(nil).EncodeMessage), arg0, arg1, arg2, arg3, arg4)
 }

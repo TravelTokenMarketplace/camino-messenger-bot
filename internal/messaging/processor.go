@@ -46,6 +46,7 @@ type EncoderDecoder interface {
 		msg *message.Message,
 		toBot ethCommon.Address,
 		sharedKey encryption.Key,
+		senderCMAccount ethCommon.Address,
 	) (*EncodedSignedMessage, error)
 
 	DecodeAndVerifyMessage(
@@ -55,6 +56,7 @@ type EncoderDecoder interface {
 	) (
 		msg *message.Message,
 		sharedKey encryption.Key,
+		senderCMAccount ethCommon.Address,
 		err error,
 	)
 }
@@ -130,14 +132,20 @@ func (p *messageProcessor) Start(ctx context.Context) {
 						return
 					}
 
-					msg, sharedKey, err := p.encoderDecoder.DecodeAndVerifyMessage(ctx, &encodedMessage.Message, encodedMessage.SenderBotAddress)
+					msg, sharedKey, senderCMAccountAddress, err := p.encoderDecoder.DecodeAndVerifyMessage(ctx, &encodedMessage.Message, encodedMessage.SenderBotAddress)
 					if err != nil {
 						p.logger.Debugf("Failed to decode and verify message: %v", err)
 						return
 					}
+
+					if senderCMAccountAddress == p.cmAccountAddress {
+						// should never happen, if messenger server and p.messenger are configured and working correctly
+						p.logger.Errorf("Received message from own CM Account %s, ignoring", p.cmAccountAddress.Hex())
+						return
+					}
 					p.logger.Debugf("Decoded message (%s, %s), processing", msg.Type, msg.RequestID)
 
-					if err := p.processIncomingMessage(ctx, msg, encodedMessage.SenderBotAddress, encodedMessage.SenderCMAccountAddress, sharedKey); err != nil {
+					if err := p.processIncomingMessage(ctx, msg, encodedMessage.SenderBotAddress, senderCMAccountAddress, sharedKey); err != nil {
 						p.logger.Warnf("Could not process message: %v", err)
 						return
 					}
@@ -228,7 +236,7 @@ func (p *messageProcessor) SendRequestMessage(
 
 	requestMsg.Timestamps.Stamp(metadata.CheckpointP2PRequestMessageSentToServer)
 
-	encodedRequestMessage, err := p.encoderDecoder.EncodeMessage(ctx, requestMsg, recipientBotAddr, sharedKey)
+	encodedRequestMessage, err := p.encoderDecoder.EncodeMessage(ctx, requestMsg, recipientBotAddr, sharedKey, p.cmAccountAddress)
 	if err != nil {
 		err = fmt.Errorf("failed to encode request message: %w", err)
 		p.logger.Error(err)
@@ -294,7 +302,7 @@ func (p *messageProcessor) respond(
 
 	responseMsg.Timestamps.Stamp(metadata.CheckpointP2PResponseMessageSentToServer)
 
-	encodedResponseMessage, err := p.encoderDecoder.EncodeMessage(ctx, responseMsg, senderBotAddress, sharedKey)
+	encodedResponseMessage, err := p.encoderDecoder.EncodeMessage(ctx, responseMsg, senderBotAddress, sharedKey, p.cmAccountAddress)
 	if err != nil {
 		err = fmt.Errorf("failed to encode response message: %w", err)
 		p.logger.Error(err)

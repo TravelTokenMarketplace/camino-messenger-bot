@@ -92,6 +92,7 @@ type publicMetadata struct {
 	RequestID          string `json:"request_id"`
 	EncryptedSharedKey []byte `json:"encrypted_shared_key,omitempty"`
 	ExpiresAt          uint64 `json:"expires_at"` // Unix timestamp in seconds, when the message is no longer valid
+	SenderCMAccount    string `json:"sender_cm_account,omitempty"`
 }
 
 func (m *publicMetadata) ExpiresAtTime() time.Time {
@@ -108,6 +109,7 @@ func (e *encoderDecoder) EncodeMessage(
 	msg *message.Message,
 	toBot common.Address,
 	sharedKey encryption.Key,
+	senderCMAccount common.Address,
 ) (*messaging.EncodedSignedMessage, error) {
 	recipientECDSAPubKey, err := e.getBotPubKey(ctx, toBot)
 	if err != nil {
@@ -141,6 +143,7 @@ func (e *encoderDecoder) EncodeMessage(
 		RequestID:          msg.RequestID,
 		EncryptedSharedKey: encryptedSharedKey,
 		ExpiresAt:          conversion.MustInt64ToUInt64(time.Now().Add(defaultExpirationTime).Unix()),
+		SenderCMAccount:    senderCMAccount.Hex(),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal public metadata: %w", err)
@@ -191,37 +194,38 @@ func (e *encoderDecoder) DecodeAndVerifyMessage(
 ) (
 	msg *message.Message,
 	sharedKey encryption.Key,
+	senderCMAccount common.Address,
 	err error,
 ) {
 	encodedData := bytes.Join(encodedMessage.ChunkedEncodedMessage, nil)
 
 	version := binary.BigEndian.Uint32(encodedData[:messageVersionSize])
 	if version != messageVersion {
-		return nil, nil, fmt.Errorf("unsupported message version: %d", version)
+		return nil, nil, common.Address{}, fmt.Errorf("unsupported message version: %d", version)
 	}
 
 	senderPubKey, err := crypto.SigToPub(crypto.Keccak256(encodedData), encodedMessage.Signature)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to recover public key from signature: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to recover public key from signature: %w", err)
 	}
 	if crypto.PubkeyToAddress(*senderPubKey) != senderBotAddress {
-		return nil, nil, fmt.Errorf("sender address %s does not match recovered address %s", senderBotAddress.Hex(), crypto.PubkeyToAddress(*senderPubKey).Hex())
+		return nil, nil, common.Address{}, fmt.Errorf("sender address %s does not match recovered address %s", senderBotAddress.Hex(), crypto.PubkeyToAddress(*senderPubKey).Hex())
 	}
 
-	msg, encryptionKey, err := e.decodeAndVerifyMessageV1(encodedData[messageVersionSize:])
+	msg, encryptionKey, senderCMAccountAddr, err := e.decodeAndVerifyMessageV1(encodedData[messageVersionSize:])
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to decode and verify message: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to decode and verify message: %w", err)
 	}
 
 	if err := e.setBotPubKey(ctx, senderBotAddress, senderPubKey); err != nil {
-		return nil, nil, fmt.Errorf("failed to store sender public key: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to store sender public key: %w", err)
 	}
 
 	if msg.Timestamps == nil {
 		msg.Timestamps = metadata.Timestamps{}
 	}
 
-	return msg, encryptionKey, nil
+	return msg, encryptionKey, senderCMAccountAddr, nil
 }
 
 func (e *encoderDecoder) decodeAndVerifyMessageV1(
@@ -229,45 +233,46 @@ func (e *encoderDecoder) decodeAndVerifyMessageV1(
 ) (
 	msg *message.Message,
 	sharedKey encryption.Key,
+	senderCMAccount common.Address,
 	err error,
 ) {
 	publicMetadataLen := binary.BigEndian.Uint16(encodedData[:publicMetadataLenSize])
 	publicMetadata := &publicMetadata{}
 	if err := json.Unmarshal(encodedData[publicMetadataLenSize:publicMetadataLenSize+publicMetadataLen], publicMetadata); err != nil {
-		return nil, nil, fmt.Errorf("failed to unmarshal metadata: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to unmarshal metadata: %w", err)
 	}
 
 	if publicMetadata.ExpiresAtTime().Before(time.Now()) {
-		return nil, nil, fmt.Errorf("message has expired at %s", publicMetadata.ExpiresAtTime().Format(time.RFC3339))
+		return nil, nil, common.Address{}, fmt.Errorf("message has expired at %s", publicMetadata.ExpiresAtTime().Format(time.RFC3339))
 	}
 
 	compressedData := encodedData[publicMetadataLenSize+publicMetadataLen:]
 	if len(publicMetadata.EncryptedSharedKey) > 0 {
 		sharedKeyBytes, err := e.eciesPrivKey.Decrypt(publicMetadata.EncryptedSharedKey, nil, nil)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to decrypt shared key: %w", err)
+			return nil, nil, common.Address{}, fmt.Errorf("failed to decrypt shared key: %w", err)
 		}
 
 		sharedKey, err = encryption.KeyFromBytes(sharedKeyBytes)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, common.Address{}, err
 		}
 
 		compressedData, err = sharedKey.Decrypt(compressedData)
 		if err != nil {
-			return nil, nil, fmt.Errorf("failed to decrypt data with shared key: %w", err)
+			return nil, nil, common.Address{}, fmt.Errorf("failed to decrypt data with shared key: %w", err)
 		}
 	}
 
 	privateData, err := e.decompress(compressedData)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to decompress data: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to decompress data: %w", err)
 	}
 
 	privateMetadataLen := binary.BigEndian.Uint16(privateData[:privateMetadataLenSize])
 	privateMetadata := &privateMetadata{}
 	if err := json.Unmarshal(privateData[privateMetadataLenSize:privateMetadataLenSize+privateMetadataLen], &privateMetadata); err != nil {
-		return nil, nil, fmt.Errorf("failed to unmarshal private metadata: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to unmarshal private metadata: %w", err)
 	}
 
 	msg = &message.Message{
@@ -277,10 +282,10 @@ func (e *encoderDecoder) decodeAndVerifyMessageV1(
 	}
 
 	if err := generated.UnmarshalContent(privateData[privateMetadataLenSize+privateMetadataLen:], msg.Type, &msg.Content); err != nil {
-		return nil, nil, fmt.Errorf("failed to unmarshal content: %w", err)
+		return nil, nil, common.Address{}, fmt.Errorf("failed to unmarshal content: %w", err)
 	}
 
-	return msg, sharedKey, nil
+	return msg, sharedKey, common.HexToAddress(publicMetadata.SenderCMAccount), nil
 }
 
 func (e *encoderDecoder) getBotPubKey(

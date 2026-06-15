@@ -96,6 +96,8 @@ func TestEncodeDecodeV1(t *testing.T) {
 	}
 
 	// sender encode request
+	senderCMAccountAddress := crypto.PubkeyToAddress(senderBotKey.PublicKey)
+	recipientCMAccountAddress := crypto.PubkeyToAddress(recipientBotKey.PublicKey)
 
 	senderStorage.EXPECT().NewSession(ctx).Return(storageSession, nil)
 	senderStorage.EXPECT().GetBotPubKey(ctx, storageSession, recipientBotAddress).Return(&recipientBotKey.PublicKey, nil)
@@ -106,6 +108,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 		requestMessage,
 		recipientBotAddress,
 		sharedKey,
+		senderCMAccountAddress,
 	)
 	require.NoError(t, err)
 
@@ -116,12 +119,13 @@ func TestEncodeDecodeV1(t *testing.T) {
 	recipientStorage.EXPECT().Commit(storageSession).Return(nil)
 	recipientStorage.EXPECT().Abort(storageSession)
 
-	decodedMessage, sharedKey, err := recipientEncoderDecoder.DecodeAndVerifyMessage( // we can't verify shared key here, because it is a new key
+	decodedMessage, sharedKey, decodedSenderCMAccountAddress, err := recipientEncoderDecoder.DecodeAndVerifyMessage( // we can't verify shared key here, because it is a new key
 		ctx,
 		encodedMessage,
 		senderBotAddress,
 	)
 	require.NoError(t, err)
+	require.Equal(t, senderCMAccountAddress, decodedSenderCMAccountAddress)
 	require.True(t, proto.Equal(requestMessage.Content, decodedMessage.Content))
 	proto.Reset(requestMessage.Content)
 	proto.Reset(decodedMessage.Content)
@@ -136,6 +140,7 @@ func TestEncodeDecodeV1(t *testing.T) {
 		responseMessage,
 		senderBotAddress,
 		sharedKey,
+		recipientCMAccountAddress,
 	)
 	require.NoError(t, err)
 
@@ -146,12 +151,13 @@ func TestEncodeDecodeV1(t *testing.T) {
 	senderStorage.EXPECT().Commit(storageSession).Return(nil)
 	senderStorage.EXPECT().Abort(storageSession)
 
-	decodedMessage, decodedSharedKey, err := senderEncoderDecoder.DecodeAndVerifyMessage(
+	decodedMessage, decodedSharedKey, decodedRecipientCMAccountAddress, err := senderEncoderDecoder.DecodeAndVerifyMessage(
 		ctx,
 		encodedMessage,
 		recipientBotAddress,
 	)
 	require.NoError(t, err)
+	require.Equal(t, recipientCMAccountAddress, decodedRecipientCMAccountAddress)
 	require.True(t, proto.Equal(responseMessage.Content, decodedMessage.Content))
 	proto.Reset(responseMessage.Content)
 	proto.Reset(decodedMessage.Content)

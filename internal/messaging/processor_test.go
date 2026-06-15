@@ -118,7 +118,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.serviceRegistry.EXPECT().GetService(a.requestMessage.Type).Return(rpcService, true)
 				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.requestMessage, rpcService, a.senderCMAccountAddress, ownCMAccount).Return(responseMessage.Content, responseMessage.Type)
 				pArgs.responseHandler.EXPECT().PrepareResponseMessage(m.Context, a.requestMessage, equalExceptTimestamps(responseMessage))
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), a.senderBotAddress, a.sharedKey, ownCMAccount).Return(encodedRespMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, ownCMAccount).Return(testErr)
 			},
 			args: args{
@@ -140,7 +140,7 @@ func TestProcessIncomingMessage(t *testing.T) {
 				pArgs.serviceRegistry.EXPECT().GetService(a.requestMessage.Type).Return(rpcService, true)
 				pArgs.partnerPlugin.EXPECT().DoServiceRequest(m.Context, a.requestMessage, rpcService, a.senderCMAccountAddress, ownCMAccount).Return(responseMessage.Content, responseMessage.Type)
 				pArgs.responseHandler.EXPECT().PrepareResponseMessage(m.Context, a.requestMessage, equalExceptTimestamps(responseMessage))
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), a.senderBotAddress, a.sharedKey).Return(encodedRespMsg, nil)
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), a.senderBotAddress, a.sharedKey, ownCMAccount).Return(encodedRespMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBotAddress, ownCMAccount).Return(nil)
 			},
 			args: args{
@@ -248,7 +248,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(true, nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey), ownCMAccount).Return(encodedReqMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, ownCMAccount).Return(testErr)
 			},
 			args: args{
@@ -265,7 +265,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(true, nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey), ownCMAccount).Return(encodedReqMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, ownCMAccount).Return(nil)
 				pArgs.resolver.EXPECT().SetBotStatus(m.Context, recipientBot, resolver.BotStatusUnreachable).Return(nil)
 			},
@@ -283,7 +283,7 @@ func TestSendRequestMessage(t *testing.T) {
 				pArgs.resolver.EXPECT().GetBotAddress(m.Context, recipientCMAccount).Return(recipientBot, nil)
 				pArgs.cmAccounts.EXPECT().IsServiceSupported(m.Context, recipientCMAccount, a.msg.Type.ToServiceName()).Return(true, nil)
 				pArgs.responseHandler.EXPECT().PrepareRequest(a.msg.Content)
-				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey)).Return(encodedReqMsg, nil)
+				pArgs.encoderDecoder.EXPECT().EncodeMessage(m.Context, a.msg, recipientBot, gomock.AssignableToTypeOf(testSharedKey), ownCMAccount).Return(encodedReqMsg, nil)
 				pArgs.messenger.EXPECT().SendMessage(m.Context, encodedReqMsg, recipientBot, ownCMAccount).Return(nil)
 				pArgs.responseHandler.EXPECT().ProcessResponseMessage(m.Context, a.msg, responseMessage)
 				pArgs.resolver.EXPECT().SetBotStatus(m.Context, recipientBot, resolver.BotStatusReachable).Return(nil)
@@ -435,12 +435,12 @@ func TestStart(t *testing.T) {
 		Signature:             []byte("response signature"),
 	}
 
-	encoderDecoder.EXPECT().DecodeAndVerifyMessage(ctx, &encodedRequestMsg.Message, encodedRequestMsg.SenderBotAddress).Return(requestMsg, sharedKey, nil)
+	encoderDecoder.EXPECT().DecodeAndVerifyMessage(ctx, &encodedRequestMsg.Message, encodedRequestMsg.SenderBotAddress).Return(requestMsg, sharedKey, senderCMAccount, nil)
 	cmAccounts.EXPECT().IsBotAllowed(gomock.Any(), senderCMAccount, senderBot).Return(true, nil)
 	serviceRegistry.EXPECT().GetService(requestMsg.Type).Return(rpcService, true)
 	responseHandler.EXPECT().PrepareResponseMessage(m.Context, requestMsg, equalExceptTimestamps(responseMessage))
 	partnerPlugin.EXPECT().DoServiceRequest(m.Context, requestMsg, rpcService, senderCMAccount, ownCMAccount).Return(responseMessage.Content, responseMessage.Type)
-	encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), senderBot, sharedKey).Return(encodedRespMsg, nil)
+	encoderDecoder.EXPECT().EncodeMessage(m.Context, equalExceptTimestamps(responseMessage), senderBot, sharedKey, ownCMAccount).Return(encodedRespMsg, nil)
 	messenger.EXPECT().SendMessage(m.Context, encodedRespMsg, senderBot, ownCMAccount).Return(nil)
 
 	// set up incoming messages channel
