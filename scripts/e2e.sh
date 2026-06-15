@@ -11,7 +11,7 @@ FALLBACK_BRANCH="dev"
 
 CAMINOGO_VERSION="$default_version"
 CONDUIT_VERSION="$default_version"
-ASB_VERSION="feature/fee-removal"
+ASB_VERSION="$default_version"
 
 BUILD_SCRIPT="./scripts/build.sh"
 
@@ -73,23 +73,47 @@ function download_and_extract() {
 		rm -rf "$dest_dir"
 	fi
 
+	local clean_url="${repo_url%.git}"
+	local owner_repo=""
+	if [[ "$clean_url" =~ github.com/([^/]+/[^/]+) ]]; then
+		owner_repo="${BASH_REMATCH[1]}"
+	elif [[ "$clean_url" =~ github.com:([^/]+/[^/]+) ]]; then
+		owner_repo="${BASH_REMATCH[1]}"
+	else
+		owner_repo="chain4travel/$repo_name"
+	fi
+
 	release_version=""
 	if [ "$version" = "latest" ]; then
-		release_version=$(curl -s "https://api.github.com/repos/chain4travel/$repo_name/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
+		release_version=$(curl -s "https://api.github.com/repos/$owner_repo/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
 	fi
 
 	if [ -d "$dest_dir" ] ; then
 		echo "Directory $dest_dir already exists. Skipping download and build."
 	else 
 		mkdir -p "$dest_dir"
-		if [ -z "$release_version" ] ; then
+		download_success=0
+		if [ -n "$release_version" ] ; then
+			local url="https://github.com/$owner_repo/releases/download/$release_version/${repo_name}-linux-amd64-${release_version}.tar.gz"
+			echo "Downloading $repo_name version $release_version..."
+			if curl --output /dev/null --silent --head --fail "$url"; then
+				curl -s -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
+				tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
+				rm "$dest_dir/${repo_name}.tar.gz"
+				download_success=1
+			else
+				echo "WARN: Unable to download the release asset '$release_version' of $repo_name."
+			fi
+		fi
+
+		if [ $download_success -eq 0 ] ; then
 			if [ "$version" = "latest" ]; then
 				branch=$FALLBACK_BRANCH
 			else
 				branch=$version
 			fi
 
-			echo "WARN: Unable to get the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
+			echo "WARN: Unable to get or download the released version of $repo_name! Fallback to clone and build of the branch '$branch'."
 
 			if git ls-remote --heads --tags "$repo_url" | grep -q "$branch"; then
 				git clone --depth 1 --branch "$branch" "$repo_url" "$dest_dir"
@@ -109,18 +133,6 @@ function download_and_extract() {
 			fi
 			$BUILD_SCRIPT
 			cd "$ORIG_DIR"
-		else
-			local url="https://github.com/chain4travel/$repo_name/releases/download/$release_version/${repo_name}-linux-amd64-${release_version}.tar.gz"
-
-			echo "Downloading $repo_name version $release_version..."
-			if curl --output /dev/null --silent --head --fail "$url"; then
-				curl -s -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
-				tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
-				rm "$dest_dir/${repo_name}.tar.gz"
-			else
-				echo "CRIT: Unable to download the release '$release_version' of $repo_name."
-				exit 1
-			fi
 		fi
 	fi
 
