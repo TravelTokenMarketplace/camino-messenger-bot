@@ -21,7 +21,7 @@ func Flags() *pflag.FlagSet {
 	// Main config flags
 	flags.Bool(flagKeyDeveloperMode, false, "Sets developer mode.")
 	flags.Bool("e2e_test_mode", false, "Sets e2e test mode adjusting limits and (expiration-)timeouts. DO NOT USE IN PRODUCTION: This mode will fail to work as the deployed contracts are enforcing the restrictions.")
-	flags.String("bot_key", "", "Sets bot private key. Its used for the matrix server connection, cm account interaction and cheques signing.")
+	flags.String("bot_key", "", "Sets bot private key. Used for the Matrix server connection and CM account interaction.")
 	flags.String("cm_account_address", "", "Sets bot cm account address.")
 	flags.String("chain_rpc_url", "", "C-chain RPC URL.")
 	flags.String("booking_token_address", "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address.")
