@@ -43,9 +43,7 @@ To run the camino-bot-messenger as intended you will need a **CM Account** with 
 
 __ToDo: update to the new TTM account manager__ If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile](https://docs.camino.network/partners/partner-config) via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on mainnet Camino. Creating the CM Account this way is necessary for the mainnet Camino.
 
-For development purposes, it is also possible to configure the partner profile on testnet Base Sepolia.
-
-For development purposes, a CM Account can also be created and configured without the company being listed as a Partner - via [camino messenger contracts](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/tree/docs/update-cmaccount-howto#camino-messenger-account-setup) `hardhat` tool.
+__ToDo: update link to main branch__ For development purposes, it is also possible to configure the partner profile on testnet Base Sepolia and a CM Account can also be created and configured without the company being listed as a Partner - via [camino messenger contracts](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/tree/docs/update-cmaccount-howto#camino-messenger-account-setup) `hardhat` tool.
 
 To create a **CM Account** and add the bot to it - you will need **two** (test) **wallets** - one for the **CM Account**, and one for the **bot**.
 
@@ -83,7 +81,7 @@ yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-accoun
 ```
 
 The command will output your new **CM Account Address** in format 0x<\...\>. Store it and add it to your `.yml` configuration under `cm_account_address`.
-More information can be founde [here](https://github.com/TravelTokenMarketplace/camino-messenger-bot/tree/feature/fee-removal#camino-messenger-account-cm-account).
+__ToDo: update link to same main branch as above__ More information can be founde [here](https://github.com/TravelTokenMarketplace/camino-messenger-bot/tree/feature/fee-removal#camino-messenger-account-cm-account).
 
 2. To **add the bot** to the CM Account run:
 
@@ -272,7 +270,8 @@ Response metadata ("timestamps" key) contains json with traced steps.
 
 In case of errors, some steps may be missing.
 
-Example with all steps:
+Example with all steps with Unix timestamps in milliseconds, which is important for investigation
+in cases of response time issues:
 ```json
 {
    "0-p2p_request_received": 1740518819000,
