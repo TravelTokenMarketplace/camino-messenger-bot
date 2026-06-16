@@ -31,7 +31,7 @@ Camino-Messenger-Bot is designed to facilitate communication through various mes
 
 This application depends on the [camino-messenger-protocol](https://github.com/chain4travel/camino-messenger-protocol), which is a separate repository. The protocol defines the protobuf messages and services used for communication between the gRPC server and client.
 
-Currently [release-12](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-12) of Camino Messenger Protocol is used.
+__ToDo: add release tags to TTM/CMP repo__ Currently [release-13](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-12) of Camino Messenger Protocol is used.
 
 Protocol Buf Schema is available [here](https://buf.build/chain4travel/camino-messenger-protocol)
 
@@ -41,25 +41,25 @@ To run the camino-bot-messenger as intended you will need a **CM Account** with 
 
 ### Creating the CM Account
 
-If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile](https://docs.camino.network/partners/partner-config) via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on mainnet Camino. Creating the CM Account this way is necessary for the mainnet Camino.
+__ToDo: update to the new TTM account manager__ If you don't already have a **CM Account** your company should [get listed as a Partner](https://docs.camino.network/partners/partner-showroom/index.html#being-listed-as-a-partner) and [configure its partner profile](https://docs.camino.network/partners/partner-config) via [suite](https://suite.camino.network). Following this process will result in a CM account and all requirements to run the bot on mainnet Camino. Creating the CM Account this way is necessary for the mainnet Camino.
 
-For development purposes, it is also possible to configure the partner profile on testnet Columbus.
+For development purposes, it is also possible to configure the partner profile on testnet Base Sepolia.
 
-For development purposes, a CM Account can also be created and configured without the company being listed as a Partner - via [camino messenger contracts](https://github.com/chain4travel/camino-messenger-contracts) `hardhat` tool.
+For development purposes, a CM Account can also be created and configured without the company being listed as a Partner - via [camino messenger contracts](https://github.com/TravelTokenMarketplace/camino-messenger-contracts/tree/docs/update-cmaccount-howto#camino-messenger-account-setup) `hardhat` tool.
 
-To create a **CM Account** and add the bot to it - you will need **two** (test) **wallets** - one for the **CM Account**, and one for the **bot**. The CM Account wallet has to be **KYC verified**. Creating and KYC verifying the test wallets can be done via [suite](https://suite.camino.network/create) as explained [here](https://docs.camino.network/guides/how-to-create-a-wallet) and [here](https://docs.camino.network/guides/kyc#kyc-verification-process).
+To create a **CM Account** and add the bot to it - you will need **two** (test) **wallets** - one for the **CM Account**, and one for the **bot**.
 
 > [!IMPORTANT]
-> Remember to ensure the suite is connected to testnet Columbus if you are doing this for development purposes.
+> Remember to ensure you are connected to testnet Base Sepolia if you are doing this for development purposes.
 
 ### Funding your wallets
 
 > [!IMPORTANT]
-> Funds must be available on both wallets before you can create the CM account. At least 100 CAM in the wallet used to create the CM Account and 100 CAM on bot wallet. To request testnet funds, go to our [discord](https://discord.gg/XhrZTBXv) and use the command `/faucet <columbus-x-chain-address> <amount>`. More details about the faucet can be found [here](https://docs.camino.network/developer/guides/how-to-deploy-a-smart-contract/#3-request-funds-from-the-discord-faucet)
+> Funds must be available on both wallets before you can create the CM account for the blockchain transaction. Test ETH casn be obtained on Base Sepolia using these [faucets](https://bwarelabs.com/faucets/base-sepolia). Note that many require Mainnet activity or Mainnet ETH to be held.
 
 ### Creating the CM Account via hardhat
 
-After you have your two wallets ready, clone the contracts repo, position inside the repo, and run:
+After you have your two wallets are ready, clone the contracts repo, position inside the repo, and run:
 
 ```
 yarn install
@@ -79,37 +79,36 @@ To see how to use the tool.
 1. To **create the CM Account** run:
 
 ```
-yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network base-sepolia
 ```
 
 The command will output your new **CM Account Address** in format 0x<\...\>. Store it and add it to your `.yml` configuration under `cm_account_address`.
-To retrieve your wallet static private key, follow the instructions [here](https://docs.camino.network/guides/how-to-login-to-your-wallet#how-to-retrieve-your-private-key).
+More information can be founde [here](https://github.com/TravelTokenMarketplace/camino-messenger-bot/tree/feature/fee-removal#camino-messenger-account-cm-account).
 
 2. To **add the bot** to the CM Account run:
 
 ```
-yarn hardhat account bot:add --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network columbus
+yarn hardhat account bot:add --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network base-sepolia
 ```
 
 Add this **bot's wallet static private key** to your `.yml` configuration under `bot_key`.
 
 > [!CAUTION]
-> Do not set up two bot instances with the same configuration (same `bot_key`). E.g. if you have a deployed bot running on the Columbus network, don't start one locally. Doing so can cause issues with cheques that will
-> manifest as timeouts. Do not start the bot locally with the configuration intended for the mainnet (Camino).
+> Do not set up two bot instances with the same configuration (same `bot_key`). E.g. if you have a deployed bot running on the Columbus network, don't start one locally. Do not start the bot locally with the configuration intended for the mainnet (Camino or Base).
 
 3. Granting Withdrawer role
 
 In case you want to withdraw funds from the CM Account contract, you have to grant the `WITHDRAWER_ROLE` to an address, even for the default admin (creator of the CM Account). To do this run:
 
 ```
-yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-default-admin-of-the-cm-account> --network columbus
+yarn hardhat account role:grant --role WITHDRAWER_ROLE --cm-account <0xCMAccount-address> --address <0xwithdrawer-address> --private-key <0xstatic-private-key-of-the-default-admin-of-the-cm-account> --network base-sepolia
 
 ```
 
 4. To **register a service** supported by your CM Account run e.g.
 
 ```
-yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network columbus
+yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet>  --service-name cmp.services.ping.v1.PingService --fee 1 --network base-sepolia
 ```
 
 > [!IMPORTANT]
@@ -119,16 +118,16 @@ yarn hardhat account service:add --cm-account <0xCMAccount-address> --private-ke
 To see all the services you can support, run:
 
 ```
-yarn hardhat manager services:list --network columbus
+yarn hardhat manager services:list --network base-sepolia
 ```
 
 5. To see a list of services that are supported by a specific CM Account:
 
 ```
-yarn hardhat account service:list --cm-account <0xCMAccount-address> --network columbus
+yarn hardhat account service:list --cm-account <0xCMAccount-address> --network base-sepolia
 ```
 
-6. Once your bot is active, offering its services to other CM Accounts, and performing regular cash-ins, it is possible to withdraw the collected fees to an address with WITHDRAWAL_ROLE via `hardhat` (and also via suite).
+6. Once your bot is active, offering its services to other CM Accounts, and performing regular cash-ins, it is possible to withdraw a possible surplus gas coins to an address with WITHDRAWAL_ROLE via `hardhat` (and also via suite).
    To do it via hardhat run:
 
 ```
@@ -148,6 +147,7 @@ The repository includes examples demonstrating the setup of gRPC servers and cli
 > - Linux - Supported on **Ubuntu/Debian Linux** systems
 > - macOS - Only on **Apple Silicon** chip, on Intel chip it is not supported
 > - Windows - Not supported
+
 ### Install required `olm` library
 
 Below are instructions for installing the `olm` library for Linux (Debian and Ubuntu) and macOS (Apple Silicon):
@@ -226,6 +226,11 @@ Copy them accordingly and edit fields, mainly the private keys and CM Account ad
 values should be fine for testing.
 
 > [!IMPORTANT]
+> Before choosing the configuration file, ensure that there is 100% clarity on whether
+> the bot acts in the supplier role (seller of travel services) or whether the bot should
+> be configured in the distributor role (buyer of travel services).
+
+> [!NOTE]
 > Keep in mind that the addresses of `bot_key` in the config file needs to
 > have funds on C-Chain to pay for the transaction fees. (If you are using **MintRequest**)
 
