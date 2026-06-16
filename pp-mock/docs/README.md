@@ -10,7 +10,7 @@ Can be retrieved by running the e2e tests as described in [README.MD](../../test
 
 # ProductListRequest
 
-Used to retrieve a list of all products of a supplier.
+Used to retrieve a list of all products of a supplier or the updates since a specified date/time.
 
 # ProductInfoRequest
 
