@@ -42,7 +42,8 @@ jobs:
           IMAGE_NAME="ghcr.io/${REPO_LOWER}"
           
           REF_NAME="${{ github.ref_name }}"
-          TAGS="${IMAGE_NAME}:${REF_NAME}"
+          REF_NAME_CLEAN="${REF_NAME//\//-}"
+          TAGS="${IMAGE_NAME}:${REF_NAME_CLEAN}"
           
           if [ "${{ inputs.tag_latest }}" = "true" ]; then
             TAGS="${TAGS},${IMAGE_NAME}:latest"
