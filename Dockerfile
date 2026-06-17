@@ -9,7 +9,7 @@ RUN apk add olm-dev
 # build
 COPY . .
 RUN apk --no-cache add git bash grep curl jq
-RUN if [ -d .git ]; then git submodule update --init; fi
+RUN if git rev-parse --git-dir >/dev/null 2>&1; then git submodule update --init; fi
 
 ARG CAMINO_BOT_COMMIT
 ARG CAMINO_BOT_TAG
