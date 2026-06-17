@@ -9,7 +9,13 @@ RUN apk add olm-dev
 # build
 COPY . .
 RUN apk --no-cache add git bash grep curl jq
-RUN git submodule update --init
+RUN if [ -d .git ]; then git submodule update --init; fi
+
+ARG CAMINO_BOT_COMMIT
+ARG CAMINO_BOT_TAG
+ENV CAMINO_BOT_COMMIT=$CAMINO_BOT_COMMIT
+ENV CAMINO_BOT_TAG=$CAMINO_BOT_TAG
+
 RUN CAMINOBOT_PATH=$(pwd) bash ./scripts/build.sh
 
 
