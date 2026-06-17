@@ -37,16 +37,18 @@ jobs:
 
       - name: Calculate Docker image tags
         id: meta
+        env:
+          TAG_LATEST: ${{ inputs.tag_latest }}
         run: |
           # Convert repository to lowercase for docker image name
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
           IMAGE_NAME="ghcr.io/${REPO_LOWER}"
           
-          REF_NAME="${{ github.ref_name }}"
+          REF_NAME="${GITHUB_REF_NAME}"
           REF_NAME_CLEAN="${REF_NAME//\//-}"
           TAGS="${IMAGE_NAME}:${REF_NAME_CLEAN}"
           
-          if [ "${{ inputs.tag_latest }}" = "true" ]; then
+          if [ "${TAG_LATEST}" = "true" ]; then
             TAGS="${TAGS},${IMAGE_NAME}:latest"
           fi
           
