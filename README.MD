@@ -51,7 +51,7 @@ Protocol Buf Schema is available [here](https://buf.build/chain4travel/camino-me
 
 ## Camino Messenger Account (CM Account)
 
-To run the camino-bot-messenger as intended you will need a **CM Account** with
+To run the camino-messenger-bot as intended you will need a **CM Account** with
 a **bot** added to it and **registered services**.
 
 ### Creating the CM Account
@@ -76,9 +76,10 @@ To create a **CM Account** and add the bot to it - you will need **two** (test)
 ### Funding your wallets
 
 > [!IMPORTANT] Funds must be available on both wallets before you can create the
-> CM account for the blockchain transaction. Test ETH can be obtained on Base
-> Sepolia using these [faucets](https://bwarelabs.com/faucets/base-sepolia).
-> Note that many require Mainnet activity or Mainnet ETH to be held.
+> CM account for the blockchain transaction.
+> 
+> Test ETH can be obtained on Base Sepolia using these [faucets](https://docs.base.org/base-chain/network-information/network-faucets).
+> Note that many require mainnet activity or mainnet ETH to be held.
 
 ### Creating the CM Account via hardhat
 
@@ -103,7 +104,7 @@ To see how to use the tool.
 1. To **create the CM Account** run:
 
 ```
-yarn hardhat account create --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network base_sepolia
+yarn hardhat account create --private-key <0xStatic-private-key-of-the-cm-account-creator-wallet> --network base_sepolia
 ```
 
 The command will output your new **CM Account Address** in format 0x<\...\>.
@@ -113,7 +114,7 @@ More information can be found [here](#camino-messenger-account-cm-account).
 2. To **add the bot** to the CM Account run:
 
 ```
-yarn hardhat account bot:add --bot <0xc-chain-address-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network base_sepolia
+yarn hardhat account bot:add --bot <0xAddress-of-the-bot-wallet> --cm-account  <0xCMAccount-address> --private-key <0xstatic-private-key-of-the-cm-account-wallet> --network base_sepolia
 ```
 
 Add this **bot's wallet static private key** to your `.yml` configuration under
@@ -256,9 +257,14 @@ set -a && source homebrew.env && set +a && ./scripts/build.sh
 
 ### Configuration
 
-Use the provided example configuration files for suppliers
-(`examples/config/camino-messenger-bot-supplier.yaml.example`) and distributors
-(`examples/config/camino-messenger-bot-distributor.yaml.example`).
+Use the provided example configuration files for suppliers and distributors:
+
+```
+camino-messenger-bot-distributor-base-sepolia.yaml
+camino-messenger-bot-distributor-camino.yaml
+camino-messenger-bot-supplier-base-sepolia.yaml
+camino-messenger-bot-supplier-camino.yaml
+```
 
 Copy them accordingly and edit fields, mainly the private keys and CM Account
 address. Most of the default values should be fine for testing.
@@ -279,13 +285,13 @@ Start the bot using the related config file depending on your need.
 **Supplier Bot:**
 
 ```bash
-./build/camino-messenger-bot --config camino-messenger-bot-supplier.yaml
+./build/camino-messenger-bot --config supplier-config.yaml
 ```
 
 **Distributor Bot:**
 
 ```bash
-./build/camino-messenger-bot --config camino-messenger-bot-distributor.yaml
+./build/camino-messenger-bot --config distributor-config.yaml
 ```
 
 > [!TIP] For testing and development, you can also start two bots, one supplier
