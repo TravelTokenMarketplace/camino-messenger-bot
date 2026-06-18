@@ -11,18 +11,22 @@ developer_mode: true
 response_timeout: 10000
 
 # Booking Token contract address. This address will be used for minting, buying of Booking Tokens
-booking_token_address: 0xe55E387F5474a012D1b048155E25ea78C7DBfBBC
+booking_token_address: 0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83
 
-# C-Chain RPC URL
-chain_rpc_url: wss://columbus.camino.network/ext/bc/C/ws
+# Blockchain RPC URL. The public endpoint (e.g. wss://base-sepolia.drpc.org) is subject to rate limiting.
+# For production or high-volume usage, users should use their own private endpoints from third-party RPC providers (such as QuickNode, Ankr, Infura, etc.).
+chain_rpc_url: wss://base-sepolia.drpc.org
+
+### Record Expiration - whether to record booking token expiration on chain
+record_expiration: true
 
 
 
 ### Bot identity
 
 # Private key of the bot in hex format without the 0x prefix.
-# Used for signing transactions on the c-chain, also used to log in into Matrix. This
-# address needs to have some funds to pay for transaction fees on the C-Chain.
+# Used for signing transactions on the blockchain, also used to log in into Matrix. This
+# address needs to have some funds to pay for transaction fees on-chain.
 bot_key: YOUR_PRIVATE_KEY_HEX
 
 # Address of the CM Account that the bot belongs to
@@ -40,9 +44,7 @@ bot_auth_cache_timeout: 300
 ### Database
 db:
     # Path to database dir.
-    path: distributor-bot-db
-
-
+    path: supplier-bot-db
 
 ### Matrix
 matrix:
@@ -53,9 +55,7 @@ matrix:
 
 ### Partner Plugin
 partner_plugin:
-    # Enable or disable the partner plugin rpc client.
-    # It must be enabled if bot's cm account supports at least one service or
-    # if partner plugin supports booking token cancellation. 
+    # Enable or disable the partner plugin rpc client. It must be enabled if bot's cm account supports at least one service.
     enabled: true
 
     # Partner Plugin hostname and port, should be reachable from this machine.
@@ -71,11 +71,13 @@ partner_plugin:
 
 
 
-### RPC server
+## RPC server
 rpc_server:
-    # Enable or disable RPC server. It must be enabled if bot is expecting to receive RPC requests (e.g. its distributor bot).
-    enabled: true
-    
+    # Enable or disable RPC server.
+    # It must be enabled if bot is expecting to receive RPC requests.
+    # E.g. if its distributor bot or supplier supporting booking token cancellation.
+    enabled: false
+
     # Listen on this port for incoming RPC requests
     port: 9090
 
