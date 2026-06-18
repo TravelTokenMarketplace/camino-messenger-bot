@@ -29,9 +29,9 @@ Camino-Messenger-Bot is designed to facilitate communication through various mes
 
 ## Camino Messenger Protocol (CMP)
 
-This application depends on the [camino-messenger-protocol](https://github.com/chain4travel/camino-messenger-protocol), which is a separate repository. The protocol defines the protobuf messages and services used for communication between the gRPC server and client.
+This application depends on the [camino-messenger-protocol](https://github.com/TravelTokenMarketplace/camino-messenger-protocol), which is a separate repository. The protocol defines the protobuf messages and services used for communication between the gRPC server and client.
 
-__ToDo: add release tags to TTM/CMP repo__ Currently [release-13](https://github.com/chain4travel/camino-messenger-protocol/releases/tag/release-12) of Camino Messenger Protocol is used.
+Currently [release-13](https://github.com/TravelTokenMarketplace/camino-messenger-protocol/releases/tag/release-13) of Camino Messenger Protocol is used.
 
 Protocol Buf Schema is available [here](https://buf.build/chain4travel/camino-messenger-protocol)
 
