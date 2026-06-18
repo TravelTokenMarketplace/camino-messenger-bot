@@ -2,7 +2,7 @@ booking_token_address: 0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83
 bot_auth_cache_timeout: 300
 bot_key: b466d215f7bf0bcb3be3fc704c16ac5447008e24c2b17bb6c04994f2da850822
 chain_rpc_url: wss://base-sepolia.drpc.org
-cm_account_address: 0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83
+cm_account_address: 0x1111111111111111111111111111111111111111
 db:
     path: supplier-bot-db
 developer_mode: true

@@ -23,8 +23,8 @@ func Flags() *pflag.FlagSet {
 	flags.Bool("e2e_test_mode", false, "Sets e2e test mode adjusting limits and (expiration-)timeouts. DO NOT USE IN PRODUCTION: This mode will fail to work as the deployed contracts are enforcing the restrictions.")
 	flags.String("bot_key", "", "Sets bot private key. Used for the Matrix server connection and CM account interaction.")
 	flags.String("cm_account_address", "", "Sets bot cm account address.")
-	flags.String("chain_rpc_url", "", "C-chain RPC URL.")
-	flags.String("booking_token_address", "0xe55E387F5474a012D1b048155E25ea78C7DBfBBC", "BookingToken address.")
+	flags.String("chain_rpc_url", "", "chain RPC URL.")
+	flags.String("booking_token_address", "0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83", "BookingToken address.")
 	flags.Int64("bot_auth_cache_timeout", 300, "Duration in seconds to cache bot authorizations.")
 	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
 

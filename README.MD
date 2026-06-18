@@ -275,7 +275,7 @@ address. Most of the default values should be fine for testing.
 > (buyer of travel services).
 
 > [!NOTE] Keep in mind that the addresses of `bot_key` in the config file needs
-> to have funds on C-Chain to pay for the transaction fees. (If you are using
+> to have funds on-chain to pay for the transaction fees. (If you are using
 > **MintRequest**)
 
 ### Start the Application
