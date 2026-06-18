@@ -83,6 +83,8 @@ function download_and_extract() {
 		owner_repo="chain4travel/$repo_name"
 	fi
 
+	echo "Owner/Repo: $owner_repo"
+
 	release_version=""
 	if [ "$version" = "latest" ]; then
 		release_version=$(curl -s "https://api.github.com/repos/$owner_repo/releases/latest" | grep -Po '"tag_name": "\K[^"]*' || echo "")
@@ -96,6 +98,7 @@ function download_and_extract() {
 		if [ -n "$release_version" ] ; then
 			local url="https://github.com/$owner_repo/releases/download/$release_version/${repo_name}-linux-amd64-${release_version}.tar.gz"
 			echo "Downloading $repo_name version $release_version..."
+			echo "URL: $url"
 			if curl --output /dev/null --silent --head --fail "$url"; then
 				curl -s -L "$url" -o "$dest_dir/${repo_name}.tar.gz"
 				tar -xzf "$dest_dir/${repo_name}.tar.gz" -C "$dest_dir"
