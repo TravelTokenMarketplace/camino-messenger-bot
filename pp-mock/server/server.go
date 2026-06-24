@@ -75,8 +75,9 @@ const (
 	EnvKeyPort           = "CMB_PARTNER_PLUGIN_MOCK_PORT"
 	EnvE2ETestMode       = "CMB_PARTNER_PLUGIN_MOCK_TEST_MODE"
 	EnvKeyRealisticPrice = "CMB_PARTNER_PLUGIN_MOCK_REALISTIC_PRICE"
-	EnvKeyTokenDecimals  = "CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS"
+	EnvKeyTokenDecimals  = "CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS" //nolint:gosec // G101: env var name, not a credential
 	DefaultPort          = 50051
+	envValueTrue         = "true"
 )
 
 func Run() error {
@@ -87,7 +88,7 @@ func Run() error {
 
 	config.SetDefaults()
 
-	realisticPrice := os.Getenv(EnvKeyRealisticPrice) == "true"
+	realisticPrice := os.Getenv(EnvKeyRealisticPrice) == envValueTrue
 	tokenDecimals, err := config.ParseTokenDecimals(os.Getenv(EnvKeyTokenDecimals))
 	if err != nil {
 		log.Printf("failed to parse %s: %v", EnvKeyTokenDecimals, err)
@@ -97,7 +98,7 @@ func Run() error {
 
 	eventSender := events.NewDummySender()
 
-	eventsEnabled := os.Getenv(EnvKeyEventsEnabled) == "true"
+	eventsEnabled := os.Getenv(EnvKeyEventsEnabled) == envValueTrue
 	var eventServer events.Server
 	if eventsEnabled {
 		eventServer, eventSender = events.NewServer()
@@ -201,7 +202,7 @@ func Run() error {
 		portSource = EnvKeyPort
 	}
 
-	e2eTestMode := os.Getenv(EnvE2ETestMode) == "true"
+	e2eTestMode := os.Getenv(EnvE2ETestMode) == envValueTrue
 	if e2eTestMode {
 		config.SetE2EDefaults()
 	}
