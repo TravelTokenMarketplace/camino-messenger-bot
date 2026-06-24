@@ -11,6 +11,7 @@ import (
 )
 
 func TestNormalizeRealistic(t *testing.T) {
+	t.Cleanup(func() { config.SetRealisticPrice(false, config.RealisticNativeBaseUnitsDefault, nil) })
 	config.SetRealisticPrice(true, "10533", map[string]uint32{"0xusdc": 6})
 
 	// Fiat is left untouched.

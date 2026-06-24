@@ -26,6 +26,7 @@ func TestParseTokenDecimals(t *testing.T) {
 }
 
 func TestTokenDecimalsFor(t *testing.T) {
+	t.Cleanup(func() { SetRealisticPrice(false, RealisticNativeBaseUnitsDefault, nil) })
 	SetRealisticPrice(true, RealisticNativeBaseUnitsDefault, map[string]uint32{"0xabc": 6})
 	require.Equal(t, uint32(6), TokenDecimalsFor("0xABC"))
 	require.Equal(t, RealisticTokenDecimalsDefault, TokenDecimalsFor("0xnotpresent"))

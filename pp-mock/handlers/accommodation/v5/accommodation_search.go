@@ -6,7 +6,7 @@ package v5
 import (
 	"context"
 	"fmt"
-	"strconv"
+	"math/big"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v5/accommodationv5grpc"
@@ -144,11 +144,13 @@ func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req
 			// In realistic mode this replaces the unit price with the tiny base-unit
 			// amount; penaltyBaseValue then drives the percentage penalties.
 			validationPrice := state.PriceV5ToUnifiedPrice(unit.PriceDetail.Price)
-			penaltyBaseValue := unitPriceValue
+			penaltyBaseValue := big.NewInt(unitPriceValue)
 			if config.RealisticPriceEnabled {
 				validationPrice.NormalizeRealistic()
 				unit.PriceDetail.Price = validationPrice.ToPriceV5()
-				if v, err := strconv.ParseInt(unit.PriceDetail.Price.Value, 10, 64); err == nil {
+				// The normalized base-unit amount is configurable and may exceed int64,
+				// so parse it as an arbitrary-precision integer.
+				if v, ok := new(big.Int).SetString(unit.PriceDetail.Price.Value, 10); ok {
 					penaltyBaseValue = v
 				}
 			}
@@ -178,7 +180,7 @@ func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req
 						End:   timestamppb.New(startDateTime),
 					},
 					Value: &typesv5.Price{
-						Value:    fmt.Sprintf("%d", penaltyBaseValue/10), // 10% penalty
+						Value:    new(big.Int).Quo(penaltyBaseValue, big.NewInt(10)).String(), // 10% penalty
 						Decimals: unit.PriceDetail.Price.Decimals,
 						Currency: unit.PriceDetail.Price.Currency,
 					},
