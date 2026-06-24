@@ -115,41 +115,57 @@ CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS="0xabc...:6,0xdef...:18"
 - Unknown address → default **18**.
 - Native and ISO/fiat never consult it (their decimals are fixed: 18 and "off-chain").
 
-### Per-night magnitude (realistic mode)
+### Magnitude (realistic mode) — normalization, not a per-night helper
 
-A single per-night magnitude, reusing the existing constant value `10533`, with the
-currency supplying the decimals:
+**Planning finding:** the services do **not** share a per-night model. Accommodation
+synthesizes `DefaultPricePerNight × nights` in the requested currency; **transport** and
+**activity** read prices from currency-tagged **mock data**. Furthermore, the entire mock
+data tree is **fiat-only** — every transport/activity price is `ISO_CURRENCY_EUR`/`USD`,
+with **zero** native or ERC20 entries. Because both services keep only mock entries whose
+currency `proto.Equal`s the request, a native/ERC20 search against transport/activity
+returns **empty results**. So in practice **accommodation is the only service that ever
+produces a native or ERC20 price.**
 
-| Search currency | `Price.Value`            | `Price.Decimals`             | reads as            | on-chain payment |
-|-----------------|--------------------------|------------------------------|---------------------|------------------|
-| Fiat (USD/EUR)  | `10533 × nights`         | `2`                          | `$105.33 / night`   | off-chain `0x01` |
-| Native (ETH/CAM)| `10533 × nights`         | `18`                         | `10533 wei`         | native `0x00`    |
-| ERC20           | `10533 × nights`         | token decimals (map, def 18) | `10533` base units  | token address    |
+Therefore the magnitude change is a **per-currency normalization pass** applied to each
+result's already-built `searchPrice`, not a per-night helper:
 
-The fiat per-night value `105.33` reuses `DefaultPricePerNightStr = "10533"` /
-`DefaultPricePerNightDecimals = 2` — no new magic number. Native/ERC20 are intentionally
-tiny (not realistic) for cheap, explorer-verifiable testnet buys.
+| Search currency | normalized `Price.Value` | `Price.Decimals`             | reads as            | on-chain payment | exercised by |
+|-----------------|--------------------------|------------------------------|---------------------|------------------|--------------|
+| Fiat (USD/EUR)  | unchanged (as computed)  | unchanged                    | e.g. `$105.33`      | off-chain `0x01` | all services |
+| Native (ETH/CAM)| **fixed** `10533`        | `18`                         | `10533 wei`         | native `0x00`    | accommodation |
+| ERC20           | **fixed** `10533`        | token decimals (map, def 18) | `10533` base units  | token address    | accommodation |
+
+The native/ERC20 amount is a **fixed small constant** (configurable, default `10533` base
+units) — predictable and explorer-friendly, independent of product or nights. Fiat is
+left exactly as the handler computed it (the realistic human value), so transport/activity
+fiat prices are untouched and only become *consistent* via the mint pass-through below.
 
 ### Code changes
 
-1. **Config** (`pp-mock/config/config.go`): add realistic-mode fields/loaders
-   (the flag bool and the parsed `map[common.Address]uint32` decimals map), populated at
-   startup from the two env vars. Keep the existing `SetDefaults`/`SetE2EDefaults` shape.
+1. **Config** (`pp-mock/config/config.go`): add realistic-mode fields/loaders — the flag
+   bool, the fixed native/ERC20 base-unit constant (default `10533`), and the parsed
+   address→decimals map (keyed by lower-cased address string; no go-ethereum dep needed).
+   Populate at startup from the env vars. Keep the existing `SetDefaults`/`SetE2EDefaults`
+   shape.
 
-2. **Shared price helper** (`pp-mock/common`): a reusable function that, given the
-   requested currency and `nights`, returns the realistic `Price` (value + decimals per
-   the table). Centralizing this keeps search handlers thin and makes extension to other
-   services trivial.
+2. **Shared normalizer** (`pp-mock/handlers/state`, on `*UnifiedPrice`): a reusable
+   method that rewrites a `UnifiedPrice` in place per the table — fiat unchanged, native →
+   `{Price:"10533", Decimals:18}`, ERC20 → `{Price:"10533", Decimals:<map lookup>}`.
+   Living on `UnifiedPrice` keeps it version-agnostic (search handlers already convert
+   their per-version price into `UnifiedPrice` before storing).
 
 3. **Search handlers** — branch on the realistic flag, in **all** price-producing search
    services: accommodation, transport, and activity, each at `v3/v4/v5`
    (`pp-mock/handlers/{accommodation,transport,activity}/{v3,v4,v5}/*_search.go`). Each
-   already calls `state.GetStore().AddSearchResult` with `[]*UnifiedPrice`.
+   already builds a `searchPrice`, converts it to `UnifiedPrice`, and calls
+   `state.GetStore().AddSearchResult`.
    - flag off → existing inline price (unchanged).
-   - flag on → call the shared helper.
-   The `UnifiedPrice` stored in state then already carries the correct value/decimals
-   and currency type. (`seat_map/v4` produces no price of its own — the transport search
-   carries the price for that flow — so it needs no change.)
+   - flag on → run the new normalizer on the `UnifiedPrice`, then write the normalized
+     value **back into the response price proto** so the search response, stored state,
+     validation, and mint all agree. (For fiat this is a no-op; for accommodation
+     native/ERC20 it substitutes the fixed tiny amount.)
+   (`seat_map/v4` produces no price of its own — the transport search carries the price for
+   that flow — so it needs no change.)
 
 4. **Mint handlers** (`pp-mock/handlers/book/v3|v4|v5/mint.go`) — branch on the flag:
    - flag off → return `common.BookingTokenPrice{V3,V4,V5}` (unchanged).
@@ -168,11 +184,21 @@ tiny (not realistic) for cheap, explorer-verifiable testnet buys.
    both `request.ExpectedPrice` and `successResp.Price` are in scope) over the bare
    sentinel, e.g. `expected {value,decimals,currency} got {value,decimals,currency}`.
 
+6. **Docs** — update `pp-mock/docs/README.md` (the "Mint" section) and the main
+   `README.MD` ("Running partner plugin (pp-mock) example" section) to document the two
+   new env vars and the realistic-vs-fixed mint-price behavior.
+
 ### Scope
 
 - **In scope:** all price-producing services on the full search → validate → mint path —
   accommodation, transport, activity at `v3/v4/v5` search, plus book `v3/v4/v5` mint —
-  the config, the shared helper, and the distributor mismatch-error improvement.
+  the config, the shared normalizer, the distributor mismatch-error improvement, and the
+  doc updates.
+- **Mint pass-through benefits all services** (it makes transport/activity fiat bookings
+  consistent too). **Native/ERC20 normalization is exercised only by accommodation**,
+  because transport/activity mock data is fiat-only — this is a data reality, not a
+  shortcut. Adding native/ERC20 mock entries to transport/activity is explicitly out of
+  scope (no manual-test payoff; accommodation already covers ERC20/native end-to-end).
 - **No follow-on services remain.** `seat_map/v4` is excluded only because it emits no
   price of its own.
 
