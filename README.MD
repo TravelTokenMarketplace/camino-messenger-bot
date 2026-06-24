@@ -304,12 +304,13 @@ open an issue in the repository.
 
 ### Running partner plugin (pp-mock) example
 
-Run the partner plugin, setting the `CMB_PARTNER_PLUGIN_MOCK_PORT` env as
-defined in your supplier bot configuration file's `partner_plugin_port` field,
-e.g.:
+Run the partner plugin. The listening port is read **only** from the
+`CMB_PARTNER_PLUGIN_MOCK_PORT` env var (pp-mock parses no CLI flags) and
+defaults to `50051` when unset. Set it to match your supplier bot configuration
+file's `partner_plugin_port` field, e.g.:
 
 ```bash
-CMB_PARTNER_PLUGIN_MOCK_PORT=50051 go run pp-mock/server.go
+CMB_PARTNER_PLUGIN_MOCK_PORT=50051 go run ./pp-mock
 ```
 
 See [README.MD](pp-mock/docs/README.md) for more information about partner
