@@ -88,8 +88,9 @@ func (h *evmResponseHandler) processMintResponseV5(
 	}
 
 	if !proto.Equal(request.ExpectedPrice, successResp.Price) {
-		h.logger.Debug(errUnexpectedMintResponsePrice)
-		return mintErrResponseV5(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, errUnexpectedMintResponsePrice.Error())
+		msg := formatMintPriceMismatchV5(request.ExpectedPrice, successResp.Price)
+		h.logger.Debug(msg)
+		return mintErrResponseV5(typesv4.ErrorCode_ERROR_CODE_BUSINESS_PROCESS_ERROR, msg)
 	}
 
 	tokenID := new(big.Int).SetUint64(successResp.BookingTokenId)
