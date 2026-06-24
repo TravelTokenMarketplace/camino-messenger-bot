@@ -141,11 +141,15 @@ tiny (not realistic) for cheap, explorer-verifiable testnet buys.
    the table). Centralizing this keeps search handlers thin and makes extension to other
    services trivial.
 
-3. **Search handlers** — branch on the realistic flag:
-   - flag off → existing inline `DefaultPricePerNight × nights @ decimals 0` (unchanged).
+3. **Search handlers** — branch on the realistic flag, in **all** price-producing search
+   services: accommodation, transport, and activity, each at `v3/v4/v5`
+   (`pp-mock/handlers/{accommodation,transport,activity}/{v3,v4,v5}/*_search.go`). Each
+   already calls `state.GetStore().AddSearchResult` with `[]*UnifiedPrice`.
+   - flag off → existing inline price (unchanged).
    - flag on → call the shared helper.
    The `UnifiedPrice` stored in state then already carries the correct value/decimals
-   and currency type.
+   and currency type. (`seat_map/v4` produces no price of its own — the transport search
+   carries the price for that flow — so it needs no change.)
 
 4. **Mint handlers** (`pp-mock/handlers/book/v3|v4|v5/mint.go`) — branch on the flag:
    - flag off → return `common.BookingTokenPrice{V3,V4,V5}` (unchanged).
@@ -154,20 +158,30 @@ tiny (not realistic) for cheap, explorer-verifiable testnet buys.
      "does not reflect verified price" alert is dropped in realistic mode since the mint
      price now *does* reflect it.
 
+5. **Distributor mismatch error detail** (`internal/messaging`) — when the distributor
+   rejects a mint because the price doesn't match, the log/error currently carries no
+   values. `errUnexpectedMintResponsePrice` (`internal/messaging/mint.go:20`) is a static
+   string used by `mint_v4.go:91` and `mint_v5.go:91` (v3 has no `ExpectedPrice` check,
+   so it's unaffected). Improve both call sites to include the **expected vs actual**
+   prices — value, decimals, and currency/payment-token — so the mismatch is diagnosable
+   straight from the logs. Prefer a formatted error/log built at the call site (where
+   both `request.ExpectedPrice` and `successResp.Price` are in scope) over the bare
+   sentinel, e.g. `expected {value,decimals,currency} got {value,decimals,currency}`.
+
 ### Scope
 
-- **In scope:** the full manual-test path the user exercises — accommodation
-  `v3/v4/v5` search + book `v3/v4/v5` mint — plus the config and shared helper.
-- **Out of scope (follow-on):** wiring the same shared helper into the other search
-  services (activity, transport, seat_map). They are unaffected in default mode; in
-  realistic mode they remain price-consistent (mint passes through whatever validation
-  stored) but would still emit the old magnitude for native/ERC20 until updated. The
-  shared helper makes this a mechanical follow-up.
+- **In scope:** all price-producing services on the full search → validate → mint path —
+  accommodation, transport, activity at `v3/v4/v5` search, plus book `v3/v4/v5` mint —
+  the config, the shared helper, and the distributor mismatch-error improvement.
+- **No follow-on services remain.** `seat_map/v4` is excluded only because it emits no
+  price of its own.
 
 ## Out of scope / non-goals
 
-- No change to the bot itself (`internal/`, `pkg/`) — the currency→payment-token
-  mapping and `ToBigInt` already do the right thing.
+- No change to the bot's **pricing/payment logic** (`internal/price`, `pkg/booking`,
+  `pkg/price`) — the currency→payment-token mapping and `ToBigInt` already do the right
+  thing. The only bot-side change is the mismatch-error message detail in
+  `internal/messaging` (item 5), which is purely diagnostic.
 - No change to e2e tests or their fixed-price expectations.
 - No on-chain RPC lookups from pp-mock.
 
