@@ -71,10 +71,12 @@ import (
 )
 
 const (
-	EnvKeyEventsEnabled = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
-	EnvKeyPort          = "CMB_PARTNER_PLUGIN_MOCK_PORT"
-	EnvE2ETestMode      = "CMB_PARTNER_PLUGIN_MOCK_TEST_MODE"
-	DefaultPort         = 50051
+	EnvKeyEventsEnabled  = "CMB_PARTNER_PLUGIN_MOCK_EVENTS"
+	EnvKeyPort           = "CMB_PARTNER_PLUGIN_MOCK_PORT"
+	EnvE2ETestMode       = "CMB_PARTNER_PLUGIN_MOCK_TEST_MODE"
+	EnvKeyRealisticPrice = "CMB_PARTNER_PLUGIN_MOCK_REALISTIC_PRICE"
+	EnvKeyTokenDecimals  = "CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS"
+	DefaultPort          = 50051
 )
 
 func Run() error {
@@ -84,6 +86,14 @@ func Run() error {
 	log.SetOutput(os.Stdout)
 
 	config.SetDefaults()
+
+	realisticPrice := os.Getenv(EnvKeyRealisticPrice) == "true"
+	tokenDecimals, err := config.ParseTokenDecimals(os.Getenv(EnvKeyTokenDecimals))
+	if err != nil {
+		log.Printf("failed to parse %s: %v", EnvKeyTokenDecimals, err)
+		return err
+	}
+	config.SetRealisticPrice(realisticPrice, "", tokenDecimals)
 
 	eventSender := events.NewDummySender()
 
@@ -181,7 +191,6 @@ func Run() error {
 
 	port := DefaultPort
 	portSource := "default"
-	var err error
 	p, found := os.LookupEnv(EnvKeyPort)
 	if found {
 		port, err = strconv.Atoi(p)
@@ -203,6 +212,8 @@ func Run() error {
 	log.Printf("  port:            %d (from %s)", port, portSource)
 	log.Printf("  events enabled:  %t (%s)", eventsEnabled, EnvKeyEventsEnabled)
 	log.Printf("  e2e test mode:   %t (%s)", e2eTestMode, EnvE2ETestMode)
+	log.Printf("  realistic price: %t (%s)", realisticPrice, EnvKeyRealisticPrice)
+	log.Printf("  token decimals:  %d entries (%s)", len(tokenDecimals), EnvKeyTokenDecimals)
 	log.Printf("  gRPC services:   %d registered", services)
 	log.Printf("  (set %s to change the port, default %d)", EnvKeyPort, DefaultPort)
 
