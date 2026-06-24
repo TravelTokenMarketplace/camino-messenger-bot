@@ -5,6 +5,8 @@ build
 *.iml
 __debug*
 
+CLAUDE.local.md
+
 ./camino-messenger-bot-supplier.yaml
 ./camino-messenger-bot-distributor.yaml
 
