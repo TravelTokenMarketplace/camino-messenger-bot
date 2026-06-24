@@ -33,16 +33,23 @@ func (s *mintServiceV3Server) Mint(_ context.Context, req *bookv3.MintRequest) (
 		}, nil
 	}
 
-	mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
+	header := common.SuccessHeaderV1()
+	mintPrice := common.BookingTokenPriceV3
+	if config.RealisticPriceEnabled {
+		mintPrice = storedValidateData.Data.VerifiedPrice.ToPriceV3()
+	} else {
+		mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
+		header = common.SuccessHeaderWithInfoV1(mintResponseInfoMessage)
+	}
 
 	response := bookv3.MintResponse{
-		Header: common.SuccessHeaderWithInfoV1(mintResponseInfoMessage),
+		Header: header,
 		MintId: &typesv1.UUID{Value: uuid.New().String()},
 		BuyableUntil: &timestamppb.Timestamp{
 			Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
 		},
 		ValidationId: req.ValidationId,
-		Price:        common.BookingTokenPriceV3,
+		Price:        mintPrice,
 		Cancellable:  true,
 	}
 

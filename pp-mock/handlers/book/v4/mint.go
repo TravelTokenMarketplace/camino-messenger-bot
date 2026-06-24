@@ -37,6 +37,11 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 		}, nil
 	}
 
+	mintPrice := common.BookingTokenPriceV4
+	if config.RealisticPriceEnabled {
+		mintPrice = storedValidateData.Data.VerifiedPrice.ToPriceV4()
+	}
+
 	response := bookv4.MintResponse{
 		Response: &bookv4.MintResponse_SuccessResponse{
 			SuccessResponse: &bookv4.MintSuccessResponse{
@@ -46,15 +51,17 @@ func (s *mintServiceV4Server) Mint(_ context.Context, req *bookv4.MintRequest) (
 					Seconds: time.Now().Add(config.BuyableUntilDefault).Unix(),
 				},
 				ValidationId:    req.ValidationId,
-				Price:           common.BookingTokenPriceV4,
+				Price:           mintPrice,
 				Cancellable:     true,
 				BookingTokenUri: "https://example.com/",
 			},
 		},
 	}
 
-	mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
-	common.AddHeaderAlertV4(response.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_INFORMATIONAL, mintResponseInfoMessage)
+	if !config.RealisticPriceEnabled {
+		mintResponseInfoMessage := "Please note that the price given in this mint response does not reflect the verified total price of the product of '" + storedValidateData.Data.VerifiedPrice.Price + "'. The price is just a minimum value to be able to mint the product."
+		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_INFORMATIONAL, mintResponseInfoMessage)
+	}
 
 	state.GetStore().AddMintResult(response.GetSuccessResponse().MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
 
