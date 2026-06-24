@@ -10,6 +10,7 @@ import (
 	activityv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/activity/v4"
 	typesv4 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v4"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data"
 )
@@ -43,6 +44,10 @@ func (s *activitySearchV4Server) ActivitySearch(_ context.Context, req *activity
 	for _, activity := range filteredActivities {
 		activity.ResultId = resultIDnum
 		validationPrice := state.PriceV4ToUnifiedPrice(activity.TotalPrice.Value)
+		if config.RealisticPriceEnabled {
+			validationPrice.NormalizeRealistic()
+			activity.TotalPrice.Value = validationPrice.ToPriceV4()
+		}
 		validationPrices = append(validationPrices, validationPrice)
 		resultIDnum++
 	}

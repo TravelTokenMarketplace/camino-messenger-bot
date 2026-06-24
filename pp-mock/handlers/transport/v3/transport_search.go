@@ -15,6 +15,7 @@ import (
 
 	"github.com/chain4travel/camino-messenger-bot/v13/pkg/price"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data"
 	"github.com/google/uuid"
@@ -174,6 +175,11 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 		resultIDnum++
 
 		validationPrice := state.PriceV3ToUnifiedPrice(searchPrice)
+		if config.RealisticPriceEnabled {
+			validationPrice.NormalizeRealistic()
+			normalized := validationPrice.ToPriceV3()
+			searchResults[len(searchResults)-1].TotalPrice.Price = normalized
+		}
 		validationPrices = append(validationPrices, validationPrice)
 	}
 
