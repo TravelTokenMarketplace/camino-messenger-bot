@@ -313,6 +313,15 @@ file's `partner_plugin_port` field, e.g.:
 CMB_PARTNER_PLUGIN_MOCK_PORT=50051 go run ./pp-mock
 ```
 
+Optional environment variables:
+
+- `CMB_PARTNER_PLUGIN_MOCK_REALISTIC_PRICE=true` — make mint return the validated price
+  (price-consistent search → validate → mint), instead of the default fixed `1` native
+  coin. Fiat stays off-chain at a realistic value; native/ERC20 use a tiny base-unit
+  amount for cheap testnet buys.
+- `CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS="0xToken:6,..."` — per-ERC20 decimals used by
+  realistic pricing (default 18). Only needed for non-18-decimal test tokens.
+
 See [README.MD](pp-mock/docs/README.md) for more information about partner
 plugin.
 

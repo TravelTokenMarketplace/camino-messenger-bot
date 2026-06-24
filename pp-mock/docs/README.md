@@ -63,3 +63,19 @@ Used for validating the availability of the search query.
 # Mint
 
 Used for minting a buyable token.
+
+By default the mint response returns a fixed minimum price of `1` native coin, decoupled
+from the validated price (this is what the e2e suite expects).
+
+Set `CMB_PARTNER_PLUGIN_MOCK_REALISTIC_PRICE=true` to make mint return the **validated
+price** instead, so the full search → validate → mint flow is price-consistent (useful for
+online manual testing). In this mode:
+
+- **Fiat (USD/EUR)** searches mint with off-chain payment at the realistic human value.
+- **Native** and **ERC20** searches mint a deliberately tiny base-unit amount
+  (default `10533`) so on-chain buys are cheap and easy to verify on a block explorer.
+
+For ERC20 currencies, pp-mock cannot query token decimals on-chain, so provide them via
+`CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS="0xToken:6,0xOther:18"` (default 18 if absent).
+Note: only accommodation search supports native/ERC20 currencies; transport and activity
+mock data is fiat-only.
