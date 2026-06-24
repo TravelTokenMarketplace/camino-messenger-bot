@@ -321,6 +321,8 @@ Optional environment variables:
   amount for cheap testnet buys.
 - `CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS="0xToken:6,..."` — per-ERC20 decimals used by
   realistic pricing (default 18). Only needed for non-18-decimal test tokens.
+- `CMB_PARTNER_PLUGIN_MOCK_BASE_UNITS=<value>` — overrides the tiny native/ERC20 base-unit
+  amount used by realistic pricing (default `10533`).
 
 See [README.MD](pp-mock/docs/README.md) for more information about partner
 plugin.

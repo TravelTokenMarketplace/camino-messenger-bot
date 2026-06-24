@@ -76,6 +76,7 @@ const (
 	EnvE2ETestMode       = "CMB_PARTNER_PLUGIN_MOCK_TEST_MODE"
 	EnvKeyRealisticPrice = "CMB_PARTNER_PLUGIN_MOCK_REALISTIC_PRICE"
 	EnvKeyTokenDecimals  = "CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS" //nolint:gosec // G101: env var name, not a credential
+	EnvKeyBaseUnits      = "CMB_PARTNER_PLUGIN_MOCK_BASE_UNITS"
 	DefaultPort          = 50051
 	envValueTrue         = "true"
 )
@@ -94,7 +95,7 @@ func Run() error {
 		log.Printf("failed to parse %s: %v", EnvKeyTokenDecimals, err)
 		return err
 	}
-	config.SetRealisticPrice(realisticPrice, "", tokenDecimals)
+	config.SetRealisticPrice(realisticPrice, os.Getenv(EnvKeyBaseUnits), tokenDecimals)
 
 	eventSender := events.NewDummySender()
 
@@ -214,6 +215,7 @@ func Run() error {
 	log.Printf("  events enabled:  %t (%s)", eventsEnabled, EnvKeyEventsEnabled)
 	log.Printf("  e2e test mode:   %t (%s)", e2eTestMode, EnvE2ETestMode)
 	log.Printf("  realistic price: %t (%s)", realisticPrice, EnvKeyRealisticPrice)
+	log.Printf("  base units:      %s (%s)", config.RealisticNativeBaseUnits, EnvKeyBaseUnits)
 	log.Printf("  token decimals:  %d entries (%s)", len(tokenDecimals), EnvKeyTokenDecimals)
 	log.Printf("  gRPC services:   %d registered", services)
 	log.Printf("  (set %s to change the port, default %d)", EnvKeyPort, DefaultPort)

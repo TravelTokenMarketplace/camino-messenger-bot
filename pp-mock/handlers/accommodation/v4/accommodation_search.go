@@ -6,6 +6,7 @@ package v4
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/accommodation/v4/accommodationv4grpc"
@@ -112,6 +113,20 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 				SupplierCode:   prop.Property.SupplierCode,
 			}
 
+			// Normalize the price before building cancel penalties and the result,
+			// so the penalties, total price, and stored validation price all agree.
+			// In realistic mode this replaces the unit price with the tiny base-unit
+			// amount; penaltyBaseValue then drives the percentage penalties.
+			validationPrice := state.PriceV4ToUnifiedPrice(unit.PriceDetail.Price)
+			penaltyBaseValue := unitPriceValue
+			if config.RealisticPriceEnabled {
+				validationPrice.NormalizeRealistic()
+				unit.PriceDetail.Price = validationPrice.ToPriceV4()
+				if v, err := strconv.ParseInt(unit.PriceDetail.Price.Value, 10, 64); err == nil {
+					penaltyBaseValue = v
+				}
+			}
+
 			cancelPenalties := []*typesv4.CancelPenalty{}
 			if startDateTime.After(now.Add(common.FreeCancellationDuration)) {
 				cancelPenalties = append(cancelPenalties, &typesv4.CancelPenalty{
@@ -137,7 +152,7 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 						End:   timestamppb.New(startDateTime),
 					},
 					Value: &typesv4.Price{
-						Value:    fmt.Sprintf("%d", unitPriceValue/10), // 10% penalty
+						Value:    fmt.Sprintf("%d", penaltyBaseValue/10), // 10% penalty
 						Decimals: unit.PriceDetail.Price.Decimals,
 						Currency: unit.PriceDetail.Price.Currency,
 					},
@@ -171,13 +186,6 @@ func (s *accommodationSearchV4Server) AccommodationSearch(_ context.Context, req
 				},
 			})
 
-			validationPrice := state.PriceV4ToUnifiedPrice(unit.PriceDetail.Price)
-			if config.RealisticPriceEnabled {
-				validationPrice.NormalizeRealistic()
-				normalized := validationPrice.ToPriceV4()
-				unit.PriceDetail.Price = normalized
-				searchResults[len(searchResults)-1].TotalPrice.Value = normalized
-			}
 			validationPrices = append(validationPrices, validationPrice)
 
 			resultIDnum++

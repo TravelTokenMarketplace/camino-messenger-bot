@@ -74,6 +74,7 @@ online manual testing). In this mode:
 - **Fiat (USD/EUR)** searches mint with off-chain payment at the realistic human value.
 - **Native** and **ERC20** searches mint a deliberately tiny base-unit amount
   (default `10533`) so on-chain buys are cheap and easy to verify on a block explorer.
+  Override the amount with `CMB_PARTNER_PLUGIN_MOCK_BASE_UNITS=<value>`.
 
 For ERC20 currencies, pp-mock cannot query token decimals on-chain, so provide them via
 `CMB_PARTNER_PLUGIN_MOCK_TOKEN_DECIMALS="0xToken:6,0xOther:18"` (default 18 if absent).
