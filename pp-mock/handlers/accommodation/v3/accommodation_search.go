@@ -13,6 +13,7 @@ import (
 	typesv2 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v2"
 	typesv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/types/v3"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/common"
+	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/config"
 	"github.com/chain4travel/camino-messenger-bot/v13/pp-mock/handlers/state"
 	mockdata "github.com/chain4travel/camino-messenger-bot/v13/pp-mock/services/data"
 	"github.com/google/uuid"
@@ -154,6 +155,11 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 			})
 
 			validationPrice := state.PriceV3ToUnifiedPrice(searchPrice)
+			if config.RealisticPriceEnabled {
+				validationPrice.NormalizeRealistic()
+				normalized := validationPrice.ToPriceV3()
+				searchResults[len(searchResults)-1].TotalPriceDetail.Price = normalized
+			}
 			validationPrices = append(validationPrices, validationPrice)
 
 			resultIDnum++
