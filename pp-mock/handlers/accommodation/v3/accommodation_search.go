@@ -145,20 +145,20 @@ func (s *accommodationSearchV3Server) AccommodationSearch(_ context.Context, req
 				Decimals: common.DefaultPricePerNightDecimals,
 				Currency: common.CloneProto(req.SearchParametersGeneric.Currency),
 			}
-			searchResults = append(searchResults, &accommodationv3.AccommodationSearchResult{
+			searchResult := &accommodationv3.AccommodationSearchResult{
 				ResultId: resultIDnum,
 				QueryId:  query.QueryId,
 				TotalPriceDetail: &typesv3.PriceDetail{
 					Price: searchPrice,
 				},
 				Units: units,
-			})
+			}
+			searchResults = append(searchResults, searchResult)
 
 			validationPrice := state.PriceV3ToUnifiedPrice(searchPrice)
 			if config.RealisticPriceEnabled {
 				validationPrice.NormalizeRealistic()
-				normalized := validationPrice.ToPriceV3()
-				searchResults[len(searchResults)-1].TotalPriceDetail.Price = normalized
+				searchResult.TotalPriceDetail.Price = validationPrice.ToPriceV3()
 			}
 			validationPrices = append(validationPrices, validationPrice)
 
