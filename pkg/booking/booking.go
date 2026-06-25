@@ -195,7 +195,8 @@ func (bs *service) MintBookingToken(
 	offChainPaymentCurrency *big.Int,
 	isCancellable bool,
 ) (*types.Receipt, *big.Int, error) {
-	bs.logger.Infof("📅 Minting BookingToken for %s with price %s and expiration %s", reservedFor.Hex(), price, expirationTimestamp)
+	bs.logger.Infof("📅 Minting BookingToken reservedFor=%s price=%s paymentToken=%s offChainCurrency=%s expiration=%s cmAccount=%s",
+		reservedFor.Hex(), price.String(), paymentToken.Hex(), offChainPaymentCurrency.String(), expirationTimestamp.String(), bs.minterCMAccountAddress.Hex())
 
 	// Validate URI
 	// TODO: Should we have default tokenURI if no URI is provided?
@@ -216,7 +217,9 @@ func (bs *service) MintBookingToken(
 		isCancellable,
 	)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to mint booking token: %w", err)
+		// cmAccounts.MintBookingToken already prefixes "failed to mint booking token"
+		// and decodes the custom revert; add call params instead of re-wrapping.
+		return nil, nil, fmt.Errorf("mint reservedFor %s (price %s): %w", reservedFor.Hex(), price.String(), err)
 	}
 
 	for _, log := range receipt.Logs {
@@ -235,7 +238,8 @@ func (bs *service) BuyBookingToken(
 	price *big.Int,
 	paymentToken common.Address,
 ) (*types.Receipt, error) {
-	bs.logger.Infof("🛒 Buying BookingToken with TokenID %s", tokenID.String())
+	bs.logger.Infof("🛒 Buying BookingToken TokenID=%s price=%s paymentToken=%s cmAccount=%s",
+		tokenID.String(), price.String(), paymentToken.Hex(), bs.minterCMAccountAddress.Hex())
 
 	// Validate tokenID
 	if tokenID.Sign() < 0 {
@@ -245,7 +249,10 @@ func (bs *service) BuyBookingToken(
 	// Call the BuyBookingToken function from the contract
 	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, bs.minterCMAccountAddress, tokenID, price, paymentToken)
 	if err != nil {
-		return nil, fmt.Errorf("failed to buy booking token: %w", err)
+		// cmAccounts.BuyBookingToken already prefixes "failed to buy booking token"
+		// and decodes the custom revert; add the call parameters as context here
+		// instead of re-wrapping with the same phrase.
+		return nil, fmt.Errorf("buy tokenID %s (price %s, paymentToken %s): %w", tokenID.String(), price.String(), paymentToken.Hex(), err)
 	}
 
 	return receipt, nil
