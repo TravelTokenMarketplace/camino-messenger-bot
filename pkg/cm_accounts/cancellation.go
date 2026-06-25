@@ -97,7 +97,7 @@ func (s *service) InitiateCancellationProposal(
 		reasonVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initiate cancellation: %w", err)
+		return nil, wrapTxErr("failed to initiate cancellation", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
@@ -139,7 +139,7 @@ func (s *service) CounterCancellation(
 		reasonVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to counter cancellation proposal: %w", err)
+		return nil, wrapTxErr("failed to counter cancellation proposal", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
@@ -177,7 +177,7 @@ func (s *service) AcceptCancellationProposal(
 		refundAmount,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to accept cancellation: %w", err)
+		return nil, wrapTxErr("failed to accept cancellation", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
@@ -217,7 +217,7 @@ func (s *service) RejectCancellationProposal(
 		reasonVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to reject cancellation: %w", err)
+		return nil, wrapTxErr("failed to reject cancellation", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
@@ -257,7 +257,7 @@ func (s *service) WithdrawCancellation(
 		reasonVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to withdraw cancellation: %w", err)
+		return nil, wrapTxErr("failed to withdraw cancellation", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)
@@ -295,7 +295,7 @@ func (s *service) FinalizeCancellation(
 		refundAmount,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to finalize cancellation: %w", err)
+		return nil, wrapTxErr("failed to finalize cancellation", err)
 	}
 
 	receipt, err := bind.WaitMined(ctx, s.ethClient, tx)

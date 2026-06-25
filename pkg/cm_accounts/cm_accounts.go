@@ -217,7 +217,7 @@ func (s *service) MintBookingToken(
 		isCancellable,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to mint booking token: %w", err)
+		return nil, wrapTxErr("failed to mint booking token", err)
 	}
 
 	s.logger.Debugf("Waiting for MintBookingToken transaction to be mined...")
@@ -256,7 +256,7 @@ func (s *service) BuyBookingToken(
 		paymentToken,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to buy booking token: %w", err)
+		return nil, wrapTxErr("failed to buy booking token", err)
 	}
 
 	s.logger.Debugf("Waiting for BuyBookingToken transaction to be mined...")
@@ -303,7 +303,7 @@ func (s *service) RecordExpiration(
 
 	tx, err := cmAccount.RecordExpiration(transactOpts, tokenID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to record expiration: %w", err)
+		return nil, wrapTxErr("failed to record expiration", err)
 	}
 
 	s.logger.Debugf("Waiting for RecordExpiration transaction to be mined...")
