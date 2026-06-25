@@ -148,6 +148,16 @@ func (s *accommodationSearchV5Server) AccommodationSearch(_ context.Context, req
 			if config.RealisticPriceEnabled {
 				validationPrice.NormalizeRealistic()
 				unit.PriceDetail.Price = validationPrice.ToPriceV5()
+				// Keep service prices in the same representation as the unit price,
+				// otherwise a result mixes tiny base units with whole-currency amounts.
+				for _, service := range unit.Services {
+					if service.GetPriceDetail().GetPrice() == nil {
+						continue
+					}
+					servicePrice := state.PriceV5ToUnifiedPrice(service.PriceDetail.Price)
+					servicePrice.NormalizeRealistic()
+					service.PriceDetail.Price = servicePrice.ToPriceV5()
+				}
 				// The normalized base-unit amount is configurable and may exceed int64,
 				// so parse it as an arbitrary-precision integer.
 				if v, ok := new(big.Int).SetString(unit.PriceDetail.Price.Value, 10); ok {
