@@ -78,6 +78,10 @@ func (l *eventListener) cancellationSubscriptionsStartupCheck(ctx context.Contex
 		}
 
 		switch cancellation.Status {
+		case booking.CancellationProposalStatusNoProposal:
+			// No cancellation proposal exists yet for this token. This is the
+			// normal steady state for an active subscription that is simply
+			// waiting for a future proposal, so there is nothing to catch up on.
 		case booking.CancellationProposalStatusPending:
 			reasons, err := l.bookingService.GetCancellationReasons(ctx, l.startingBlockNumber, tokenID)
 			if err != nil {
