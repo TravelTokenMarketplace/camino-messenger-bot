@@ -163,7 +163,7 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 			Decimals: decimals,
 		}
 
-		searchResults = append(searchResults, &transportv3.TransportSearchResult{
+		searchResult := &transportv3.TransportSearchResult{
 			ResultId:        resultIDnum,
 			QueryId:         query.QueryId,
 			TravellerIds:    common.GetTravellerIDsV3(query.Travellers),
@@ -171,14 +171,14 @@ func (s *transportSearchV3Server) TransportSearch(_ context.Context, req *transp
 			TotalPrice: &typesv3.PriceDetail{
 				Price: searchPrice,
 			},
-		})
+		}
+		searchResults = append(searchResults, searchResult)
 		resultIDnum++
 
 		validationPrice := state.PriceV3ToUnifiedPrice(searchPrice)
 		if config.RealisticPriceEnabled {
 			validationPrice.NormalizeRealistic()
-			normalized := validationPrice.ToPriceV3()
-			searchResults[len(searchResults)-1].TotalPrice.Price = normalized
+			searchResult.TotalPrice.Price = validationPrice.ToPriceV3()
 		}
 		validationPrices = append(validationPrices, validationPrice)
 	}
