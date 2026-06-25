@@ -5,6 +5,7 @@ package v3
 
 import (
 	"context"
+	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
 	bookv3 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v3"
@@ -36,15 +37,22 @@ func (s *validationServiceV3Server) Validation(_ context.Context, req *bookv3.Va
 
 	// Look-up the store if we actually have a search storedSearchData for the given search identifier
 	// If we don't have a storedSearchData, return an error
-	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchIdentifier.SearchId.Value)
+	searchID := req.ValidationObject.SearchIdentifier.SearchId.Value
+	resultID := req.ValidationObject.SearchIdentifier.ResultId
+	log.Printf("[book.v3.Validation] request searchId=%s resultId=%d", searchID, resultID)
+
+	storedSearchData, found := state.GetStore().GetSearchResult(searchID)
 	if !found {
+		log.Printf("[book.v3.Validation] rejected: searchId=%s not found in state", searchID)
 		return &bookv3.ValidationResponse{
 			Header: common.ErrorHeaderV1("Invalid validation request: searchId not found in state"),
 		}, nil
 	}
 
-	resultIndex := int(req.ValidationObject.SearchIdentifier.ResultId - 1)
+	resultIndex := int(resultID - 1)
 	if resultIndex < 0 || resultIndex >= len(storedSearchData.Data.Prices) {
+		log.Printf("[book.v3.Validation] rejected: resultId=%d out of range (have %d prices) for searchId=%s",
+			resultID, len(storedSearchData.Data.Prices), searchID)
 		return &bookv3.ValidationResponse{
 			Header: common.ErrorHeaderV1("Invalid validation request: resultId out of range"),
 		}, nil
@@ -52,6 +60,8 @@ func (s *validationServiceV3Server) Validation(_ context.Context, req *bookv3.Va
 
 	unifiedValidationPrice := storedSearchData.Data.Prices[resultIndex]
 	validationPrice := unifiedValidationPrice.ToPriceV3()
+	log.Printf("[book.v3.Validation] searchId=%s resultId=%d -> verifiedPrice=%s (selected from %d search prices)",
+		searchID, resultID, unifiedValidationPrice, len(storedSearchData.Data.Prices))
 
 	response := bookv3.ValidationResponse{
 		Header:           common.SuccessHeaderV1(),
@@ -69,6 +79,7 @@ func (s *validationServiceV3Server) Validation(_ context.Context, req *bookv3.Va
 		JSONRequest:       req.String(),
 		JSONResponse:      response.String(),
 	})
+	log.Printf("[book.v3.Validation] issued validationId=%s with verifiedPrice=%s", response.ValidationId.Value, unifiedValidationPrice)
 
 	return &response, nil
 }

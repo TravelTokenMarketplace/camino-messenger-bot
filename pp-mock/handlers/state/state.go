@@ -4,6 +4,7 @@
 package state
 
 import (
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -19,6 +20,15 @@ type UnifiedPrice struct {
 	IsNative             bool
 	IsoCurrencyEnum      int32
 	TokenContractAddress string
+}
+
+// String renders a UnifiedPrice for debug logging.
+func (p *UnifiedPrice) String() string {
+	if p == nil {
+		return "<nil>"
+	}
+	return fmt.Sprintf("{price=%s decimals=%d native=%t isoCurrency=%d tokenContract=%q}",
+		p.Price, p.Decimals, p.IsNative, p.IsoCurrencyEnum, p.TokenContractAddress)
 }
 
 // SearchData represents the data for a search result and everything which is

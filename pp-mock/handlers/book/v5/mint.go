@@ -5,6 +5,7 @@ package v5
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v5/bookv5grpc"
@@ -27,6 +28,7 @@ func NewMintServiceServer() bookv5grpc.MintServiceServer {
 
 func (s *mintV5Server) Mint(_ context.Context, req *bookv5.MintRequest) (*bookv5.MintResponse, error) {
 	if req.ValidationId == nil || req.ValidationId.Value == "" {
+		log.Printf("[book.v5.Mint] rejected: validationId missing or empty")
 		return &bookv5.MintResponse{
 			Response: &bookv5.MintResponse_ErrorResponse{
 				ErrorResponse: &bookv5.MintErrorResponse{
@@ -36,8 +38,11 @@ func (s *mintV5Server) Mint(_ context.Context, req *bookv5.MintRequest) (*bookv5
 		}, nil
 	}
 
+	log.Printf("[book.v5.Mint] request validationId=%s realisticPrice=%t", req.ValidationId.Value, config.RealisticPriceEnabled)
+
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
+		log.Printf("[book.v5.Mint] rejected: validationId=%s not found in state", req.ValidationId.Value)
 		return &bookv5.MintResponse{
 			Response: &bookv5.MintResponse_ErrorResponse{
 				ErrorResponse: &bookv5.MintErrorResponse{
@@ -51,6 +56,8 @@ func (s *mintV5Server) Mint(_ context.Context, req *bookv5.MintRequest) (*bookv5
 	if config.RealisticPriceEnabled {
 		mintPrice = storedValidateData.Data.VerifiedPrice.ToPriceV5()
 	}
+	log.Printf("[book.v5.Mint] validationId=%s verifiedPrice=%s -> mintPrice={value=%s decimals=%d} (realistic=%t)",
+		req.ValidationId.Value, storedValidateData.Data.VerifiedPrice, mintPrice.Value, mintPrice.Decimals, config.RealisticPriceEnabled)
 
 	response := &bookv5.MintResponse{
 		Response: &bookv5.MintResponse_SuccessResponse{
@@ -71,7 +78,11 @@ func (s *mintV5Server) Mint(_ context.Context, req *bookv5.MintRequest) (*bookv5
 		common.AddHeaderAlertV4(response.GetSuccessResponse().Header, typesv4.AlertCode_ALERT_CODE_INFORMATIONAL, mintResponseInfoMessage)
 	}
 
-	state.GetStore().AddMintResult(response.GetSuccessResponse().MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
+	mintID := response.GetSuccessResponse().MintId.Value
+	state.GetStore().AddMintResult(mintID, storedValidateData.Data.InitialSearchData.SeatMapID)
+	log.Printf("[book.v5.Mint] issued mintId=%s seatMapId=%s buyableUntil=%s cancellable=%t",
+		mintID, storedValidateData.Data.InitialSearchData.SeatMapID,
+		response.GetSuccessResponse().BuyableUntil.AsTime().Format(time.RFC3339), response.GetSuccessResponse().Cancellable)
 
 	return response, nil
 }

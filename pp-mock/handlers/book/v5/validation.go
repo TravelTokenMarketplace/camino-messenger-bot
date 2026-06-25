@@ -5,6 +5,7 @@ package v5
 
 import (
 	"context"
+	"log"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v5/bookv5grpc"
 	bookv5 "buf.build/gen/go/chain4travel/camino-messenger-protocol/protocolbuffers/go/cmp/services/book/v5"
@@ -32,16 +33,25 @@ func (s *validationV5Server) Validation(_ context.Context, req *bookv5.Validatio
 		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: missing required validation identifier fields"), nil
 	}
 
-	storedSearchData, found := state.GetStore().GetSearchResult(req.ValidationObject.SearchResultIdentifier.SearchId.Value)
+	searchID := req.ValidationObject.SearchResultIdentifier.SearchId.Value
+	resultID := req.ValidationObject.SearchResultIdentifier.ResultId
+	log.Printf("[book.v5.Validation] request searchId=%s resultId=%d", searchID, resultID)
+
+	storedSearchData, found := state.GetStore().GetSearchResult(searchID)
 	if !found {
+		log.Printf("[book.v5.Validation] rejected: searchId=%s not found in state", searchID)
 		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: searchId not found in state"), nil
 	}
 
-	if req.ValidationObject.SearchResultIdentifier.ResultId >= conversion.MustIntToUInt32(len(storedSearchData.Data.Prices)) {
+	if resultID >= conversion.MustIntToUInt32(len(storedSearchData.Data.Prices)) {
+		log.Printf("[book.v5.Validation] rejected: resultId=%d out of range (have %d prices) for searchId=%s",
+			resultID, len(storedSearchData.Data.Prices), searchID)
 		return errValidationResp(typesv4.ErrorCode_ERROR_CODE_INVALID_IDENTIFIERS, "Invalid validation request: resultId out of range"), nil
 	}
 
-	unifiedValidationPrice := storedSearchData.Data.Prices[req.ValidationObject.SearchResultIdentifier.ResultId]
+	unifiedValidationPrice := storedSearchData.Data.Prices[resultID]
+	log.Printf("[book.v5.Validation] searchId=%s resultId=%d -> verifiedPrice=%s (selected from %d search prices)",
+		searchID, resultID, unifiedValidationPrice, len(storedSearchData.Data.Prices))
 
 	resp := &bookv5.ValidationResponse{
 		Response: &bookv5.ValidationResponse_SuccessResponse{
@@ -56,12 +66,14 @@ func (s *validationV5Server) Validation(_ context.Context, req *bookv5.Validatio
 		},
 	}
 
-	state.GetStore().AddValidationResult(resp.GetSuccessResponse().ValidationId.Id.Value, state.ValidationData{
+	validationID := resp.GetSuccessResponse().ValidationId.Id.Value
+	state.GetStore().AddValidationResult(validationID, state.ValidationData{
 		InitialSearchData: storedSearchData.Data,
 		VerifiedPrice:     unifiedValidationPrice,
 		JSONRequest:       req.String(),
 		JSONResponse:      resp.String(),
 	})
+	log.Printf("[book.v5.Validation] issued validationId=%s with verifiedPrice=%s", validationID, unifiedValidationPrice)
 
 	return resp, nil
 }

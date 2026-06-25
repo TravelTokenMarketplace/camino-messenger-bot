@@ -5,6 +5,7 @@ package v3
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"buf.build/gen/go/chain4travel/camino-messenger-protocol/grpc/go/cmp/services/book/v3/bookv3grpc"
@@ -26,8 +27,11 @@ func NewMintServiceServer() bookv3grpc.MintServiceServer {
 }
 
 func (s *mintServiceV3Server) Mint(_ context.Context, req *bookv3.MintRequest) (*bookv3.MintResponse, error) {
+	log.Printf("[book.v3.Mint] request validationId=%s realisticPrice=%t", req.ValidationId.Value, config.RealisticPriceEnabled)
+
 	storedValidateData, ok := state.GetStore().GetValidationResult(req.ValidationId.Value)
 	if !ok {
+		log.Printf("[book.v3.Mint] rejected: validationId=%s not found in state", req.ValidationId.Value)
 		return &bookv3.MintResponse{
 			Header: common.ErrorHeaderV1("Validation not found in state"),
 		}, nil
@@ -53,7 +57,11 @@ func (s *mintServiceV3Server) Mint(_ context.Context, req *bookv3.MintRequest) (
 		Cancellable:  true,
 	}
 
+	log.Printf("[book.v3.Mint] validationId=%s verifiedPrice=%s -> mintPrice={value=%s} (realistic=%t)",
+		req.ValidationId.Value, storedValidateData.Data.VerifiedPrice, mintPrice.Value, config.RealisticPriceEnabled)
+
 	state.GetStore().AddMintResult(response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
+	log.Printf("[book.v3.Mint] issued mintId=%s seatMapId=%s", response.MintId.Value, storedValidateData.Data.InitialSearchData.SeatMapID)
 
 	return &response, nil
 }
