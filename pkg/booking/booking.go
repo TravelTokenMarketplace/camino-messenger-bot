@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math/big"
 	"strings"
+	"time"
 
 	cmaccounts "github.com/chain4travel/camino-messenger-bot/v13/pkg/cm_accounts"
 	"github.com/chain4travel/camino-messenger-contracts/go/contracts/bookingtoken"
@@ -246,6 +247,16 @@ func (bs *service) BuyBookingToken(
 		return nil, fmt.Errorf("tokenID must be a positive integer (>= 0)")
 	}
 
+	// Wait until the local RPC node has the minted token in its view.
+	// Load-balanced RPC providers (e.g. drpc.org) may route the supplier's
+	// WaitMined call and the distributor's subsequent eth_call to different
+	// backend nodes; the node receiving the buy may not have synced the mint
+	// block yet, making getReservationPrice return (0, 0x0) and causing an
+	// UnexpectedPrice revert.
+	if err := bs.waitForTokenVisible(ctx, tokenID, price, paymentToken); err != nil {
+		return nil, fmt.Errorf("buy tokenID %s: %w", tokenID, err)
+	}
+
 	// Call the BuyBookingToken function from the contract
 	receipt, err := bs.cmAccounts.BuyBookingToken(ctx, bs.transactOpts, bs.minterCMAccountAddress, tokenID, price, paymentToken)
 	if err != nil {
@@ -256,6 +267,58 @@ func (bs *service) BuyBookingToken(
 	}
 
 	return receipt, nil
+}
+
+// waitForTokenVisible polls getReservationPrice until the token is visible on
+// the local RPC node with the expected price and payment token, then returns
+// nil. It retries up to maxTokenVisibleAttempts times with retryDelay between
+// each attempt.
+//
+// This guards against split-brain reads when the write (mint) and read (buy)
+// hit different backends of a load-balanced RPC provider such as drpc.org:
+// the node handling the buy may lag behind the one that confirmed the mint,
+// causing getReservationPrice to return (0, 0x0) and the contract to revert
+// with UnexpectedPrice.
+func (bs *service) waitForTokenVisible(
+	ctx context.Context,
+	tokenID *big.Int,
+	expectedPrice *big.Int,
+	expectedPaymentToken common.Address,
+) error {
+	const (
+		maxTokenVisibleAttempts = 10
+		retryDelay              = 3 * time.Second
+	)
+
+	for attempt := range maxTokenVisibleAttempts {
+		reservation, err := bs.bookingToken.GetReservationPrice(
+			&bind.CallOpts{Context: ctx}, tokenID)
+		if err == nil &&
+			reservation.Price.Cmp(expectedPrice) == 0 &&
+			reservation.PaymentToken == expectedPaymentToken {
+			if attempt > 0 {
+				bs.logger.Infof("waitForTokenVisible: token %s visible after %d retries", tokenID, attempt)
+			}
+			return nil
+		}
+		if err != nil {
+			bs.logger.Debugf("waitForTokenVisible: attempt %d/%d: GetReservationPrice error: %v",
+				attempt+1, maxTokenVisibleAttempts, err)
+		} else {
+			bs.logger.Debugf("waitForTokenVisible: attempt %d/%d: price=%s paymentToken=%s (want %s / %s)",
+				attempt+1, maxTokenVisibleAttempts,
+				reservation.Price, reservation.PaymentToken.Hex(),
+				expectedPrice, expectedPaymentToken.Hex())
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(retryDelay):
+		}
+	}
+
+	return fmt.Errorf("token %s (price %s, paymentToken %s) not visible on local RPC node after %d attempts",
+		tokenID, expectedPrice, expectedPaymentToken.Hex(), maxTokenVisibleAttempts)
 }
 
 func (bs *service) RecordExpiration(
