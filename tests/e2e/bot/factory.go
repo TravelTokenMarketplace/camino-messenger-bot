@@ -188,6 +188,12 @@ func (f *Factory) CreateBot(
 		ChainRPCURL:         f.networkClient.ChainRPCURL(),
 		BookingTokenAddress: f.networkClient.BookingTokenContractAddress().Hex(),
 		ResponseTimeout:     30000, // 30s
+		// Mirror the flag defaults: WriteYAMLConfig serializes every mapstructure
+		// field, so leaving these unset would emit token_visible_max_attempts: 0,
+		// which parseConfig rejects (must be >= 1). The local single-node network
+		// serves the reserved token immediately, so the delay never fires.
+		TokenVisibleMaxAttempts: 16,
+		TokenVisibleRetryDelay:  1000, // ms
 		PartnerPlugin: config.PartnerPluginConfig{
 			Enabled:     partnerPlugin != nil,
 			Host:        partnerPlugin.RPCClientConnectionString(),
