@@ -398,6 +398,10 @@ func pollTokenVisible(
 			logger.Debugf("waitForTokenVisible: attempt %d/%d: GetReservationPrice error: %v",
 				attempt+1, attempts, err)
 		}
+		// No point sleeping after the final attempt — we're about to give up.
+		if attempt == attempts-1 {
+			break
+		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()

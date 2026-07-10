@@ -120,4 +120,18 @@ func TestPollTokenVisible(t *testing.T) {
 		require.Equal(t, 4, reader.calls)
 		require.Equal(t, 4, notVisible.Attempts)
 	})
+
+	t.Run("timeout does no trailing sleep after the final attempt", func(t *testing.T) {
+		attempts := 4
+		reader := &fakeReservationReader{results: []reservationResult{lagging, lagging, lagging, lagging}}
+		// A trailing sleep after the final attempt would push elapsed to >= attempts*delay.
+		start := time.Now()
+		err := pollTokenVisible(context.Background(), reader, logger, tokenID, price, token, attempts, 50*time.Millisecond)
+		elapsed := time.Since(start)
+		var notVisible *ErrTokenNotVisible
+		require.ErrorAs(t, err, &notVisible)
+		require.Equal(t, attempts, reader.calls)
+		// Only attempts-1 sleeps of 50ms; the final attempt must not sleep.
+		require.Less(t, elapsed, time.Duration(attempts)*50*time.Millisecond)
+	})
 }
