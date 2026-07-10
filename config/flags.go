@@ -27,6 +27,8 @@ func Flags() *pflag.FlagSet {
 	flags.String("booking_token_address", "0x459EEdD4bE13bD7D1Af27DA5DdA6d69407118C83", "BookingToken address.")
 	flags.Int64("bot_auth_cache_timeout", 300, "Duration in seconds to cache bot authorizations.")
 	flags.Int64("response_timeout", 3000, "The messenger timeout (in milliseconds).")
+	flags.Int64("token_visible_max_attempts", 16, "Max attempts to poll getReservationPrice until the minted token is visible on the local RPC node before buying.")
+	flags.Int64("token_visible_retry_delay", 1000, "Delay between token-visibility poll attempts (in milliseconds).")
 
 	// DB config flags
 	flags.String("db.path", "cmb-db", "Path to database dir.")

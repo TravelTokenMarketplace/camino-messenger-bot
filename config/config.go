@@ -32,6 +32,9 @@ type Config struct {
 
 	RecordExpiration bool
 
+	TokenVisibleMaxAttempts int
+	TokenVisibleRetryDelay  time.Duration
+
 	RPCServer     RPCServerConfig
 	PartnerPlugin PartnerPluginConfig
 	DB            SQLiteDBConfig
@@ -89,6 +92,9 @@ type UnparsedConfig struct {
 
 	RecordExpiration bool `mapstructure:"record_expiration"`
 
+	TokenVisibleMaxAttempts int64 `mapstructure:"token_visible_max_attempts"`
+	TokenVisibleRetryDelay  int64 `mapstructure:"token_visible_retry_delay"` // milliseconds
+
 	PartnerPlugin PartnerPluginConfig `mapstructure:"partner_plugin"`
 	RPCServer     RPCServerConfig     `mapstructure:"rpc_server"`
 
@@ -121,5 +127,8 @@ func (cfg *Config) unparse() *UnparsedConfig {
 		BotAuthCacheTimeout: int64(cfg.BotAuthCacheTimeout / time.Second),
 		ResponseTimeout:     int64(cfg.ResponseTimeout / time.Millisecond),
 		RecordExpiration:    cfg.RecordExpiration,
+
+		TokenVisibleMaxAttempts: int64(cfg.TokenVisibleMaxAttempts),
+		TokenVisibleRetryDelay:  int64(cfg.TokenVisibleRetryDelay / time.Millisecond),
 	}
 }

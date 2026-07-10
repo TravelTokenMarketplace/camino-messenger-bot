@@ -26,6 +26,9 @@ var (
 	errEmptyConfigPath            = errors.New("config path is empty")
 	errInvalidCMAccountAddress    = errors.New("invalid CM account address")
 	errInvalidBookingTokenAddress = errors.New("invalid booking token address")
+
+	errNonPositiveTokenVisibleAttempts = errors.New("token_visible_max_attempts must be >= 1")
+	errNegativeTokenVisibleRetryDelay  = errors.New("token_visible_retry_delay must be >= 0")
 )
 
 type Reader interface {
@@ -109,6 +112,14 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		return nil, errInvalidBookingTokenAddress
 	}
 
+	if cfg.TokenVisibleMaxAttempts < 1 {
+		return nil, errNonPositiveTokenVisibleAttempts
+	}
+
+	if cfg.TokenVisibleRetryDelay < 0 {
+		return nil, errNegativeTokenVisibleRetryDelay
+	}
+
 	return &Config{
 		DB: SQLiteDBConfig{
 			Common: cfg.DB,
@@ -137,5 +148,8 @@ func (cr *reader) parseConfig(cfg *UnparsedConfig) (*Config, error) {
 		BotAuthCacheTimeout: time.Duration(cfg.BotAuthCacheTimeout) * time.Second,
 		ResponseTimeout:     time.Duration(cfg.ResponseTimeout) * time.Millisecond,
 		RecordExpiration:    cfg.RecordExpiration,
+
+		TokenVisibleMaxAttempts: int(cfg.TokenVisibleMaxAttempts),
+		TokenVisibleRetryDelay:  time.Duration(cfg.TokenVisibleRetryDelay) * time.Millisecond,
 	}, nil
 }

@@ -60,6 +60,15 @@ func TestReadConfig(t *testing.T) {
 			},
 			flags: Flags(),
 		},
+		"invalid token_visible_max_attempts": {
+			prepare: func(t *testing.T, cr *reader) {
+				require.NoError(t, setFlagsFromMap(cr.flags, "", rawMap))
+				require.NoError(t, cr.flags.Set("token_visible_max_attempts", "0"))
+				cr.viper.Set(flagKeyConfig, nonExistingConfigPath)
+			},
+			flags:       Flags(),
+			expectedErr: errInvalidRawConfig,
+		},
 		// TODO @evlekht add test case for priority of sources
 	}
 

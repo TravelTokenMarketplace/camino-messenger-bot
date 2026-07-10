@@ -22,3 +22,5 @@ rpc_server:
     key_file: server-key.pem
     port: 9090
     unencrypted: true
+token_visible_max_attempts: 16
+token_visible_retry_delay: 1000
