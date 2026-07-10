@@ -259,7 +259,7 @@ func (bs *service) BuyBookingToken(
 	// WaitMined call and the distributor's subsequent eth_call to different
 	// backend nodes; the node receiving the buy may not have synced the mint
 	// block yet, making getReservationPrice return (0, 0x0) and causing an
-	// UnexpectedPrice revert.
+	// IncorrectPrice revert.
 	if err := bs.waitForTokenVisible(ctx, tokenID, price, paymentToken); err != nil {
 		return nil, fmt.Errorf("buy tokenID %s: %w", tokenID, err)
 	}
