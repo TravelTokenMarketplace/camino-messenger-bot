@@ -33,7 +33,8 @@ type fakeReservationReader struct {
 func (f *fakeReservationReader) GetReservationPrice(_ *bind.CallOpts, _ *big.Int) (struct {
 	Price        *big.Int
 	PaymentToken common.Address
-}, error) {
+}, error,
+) {
 	r := f.results[f.calls]
 	f.calls++
 	return struct {

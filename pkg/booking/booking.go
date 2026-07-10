@@ -316,7 +316,7 @@ func (e *ErrTokenNotVisible) Error() string {
 // satisfied by *bookingtoken.Bookingtoken and narrowed to this one method so
 // the polling logic can be exercised with a fake in unit tests.
 type reservationPriceReader interface {
-	GetReservationPrice(opts *bind.CallOpts, tokenId *big.Int) (struct {
+	GetReservationPrice(opts *bind.CallOpts, tokenID *big.Int) (struct {
 		Price        *big.Int
 		PaymentToken common.Address
 	}, error)
