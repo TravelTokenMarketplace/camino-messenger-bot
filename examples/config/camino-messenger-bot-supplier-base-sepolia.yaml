@@ -22,6 +22,21 @@ record_expiration: true
 
 
 
+### Token visibility (buy path)
+
+# Before buying a minted Booking Token, the bot polls getReservationPrice until the
+# reservation becomes visible on its RPC node. This guards against split-brain reads on
+# load-balanced RPC endpoints (e.g. wss://base-sepolia.drpc.org), where the node serving
+# the buy may not have synced the mint block yet. The values below are the defaults.
+
+# Max poll attempts before giving up on the buy (must be >= 1).
+# token_visible_max_attempts: 16
+
+# Delay between poll attempts, in milliseconds.
+# token_visible_retry_delay: 1000
+
+
+
 ### Bot identity
 
 # Private key of the bot in hex format without the 0x prefix.
