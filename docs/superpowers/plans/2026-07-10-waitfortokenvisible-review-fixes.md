@@ -192,7 +192,7 @@ Redesign the wait: extract a testable `pollTokenVisible` that classifies each re
 Create `pkg/booking/booking_test.go`:
 
 ```go
-// Copyright (C) 2022-2026, Chain4Travel AG. All rights reserved.
+// Copyright (C) 2022-2026, Travel Token Marketplace. All rights reserved.
 // See the file LICENSE for licensing terms.
 
 package booking

@@ -1,162 +1,63 @@
-# CAMINO MESSENGER LICENSE
+Copyright (C) 2026 Travel Token Marketplace
 
-**RESTRICTED OPEN-SOURCE LICENSE**
+   This library is free software: you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation, either
+   version 3 of the License, or (at your option) any later version.
 
-**19 August 2025**
+GNU LESSER GENERAL PUBLIC LICENSE
+Version 3, 29 June 2007
 
-This Camino Messenger License ("License") sets out the terms and conditions agreed upon between you ("You"), either an individual or an entity, and Chain4Travel AG ("C4T"), incorporated in Zug (Switzerland) having its registered office at Dammstrasse 16, Zug, CH-6300 Switzerland, governing your use of certain open-source and available components of the Camino Messenger ("Licensed Software").
+Copyright © 2007 Free Software Foundation, Inc. <https://fsf.org/>
 
-By installing, copying, downloading, or otherwise using the Licensed Software in any way, or by indicating acceptance through a digital mechanism, You agree to be bound by the terms and conditions of this License. If You are entering into this License on behalf of any organization, you confirm that you have the authority to bind that organization to this License and are accepting it on their behalf.
+Everyone is permitted to copy and distribute verbatim copies of this license document, but changing it is not allowed.
 
-**BY INSTALLING, COPYING, ACCESSING, OR USING THE LICENSED SOFTWARE IN ANY MANNER, YOU AGREE TO BE LEGALLY BOUND BY THE TERMS OF THIS LICENSE. IF YOU DO NOT AGREE TO THESE TERMS, DO NOT INSTALL, COPY, OR USE THE LICENSED SOFTWARE.**
+This version of the GNU Lesser General Public License incorporates the terms and conditions of version 3 of the GNU General Public License, supplemented by the additional permissions listed below.
 
-## 1. DEFINITIONS
+0. Additional Definitions.
+As used herein, “this License” refers to version 3 of the GNU Lesser General Public License, and the “GNU GPL” refers to version 3 of the GNU General Public License.
 
-For the purpose of this License, the following terms shall have the meanings set forth below:
+“The Library” refers to a covered work governed by this License, other than an Application or a Combined Work as defined below.
 
-- **"Camino Messenger"** means a communication and messaging solution developed and maintained by C4T, consisting of various software components.
-- **"Licensed Software"** means those components of Camino Messenger that C4T explicitly designates as "Ecosystem Components" in its official repositories. These components are open source and available under the terms of this License.
-- **"Camino Ecosystem"** means the official blockchain-based infrastructure governed by the Camino Network Foundation, including but not limited to the Camino Network (X-Chain, C-Chain, P-Chain and affiliated subnets) and associated protocols and services officially recognized by the Camino Network Foundation and/or C4T.
+An “Application” is any work that makes use of an interface provided by the Library, but which is not otherwise based on the Library. Defining a subclass of a class defined by the Library is deemed a mode of using an interface provided by the Library.
 
-## 2. LICENSE
+A “Combined Work” is a work produced by combining or linking an Application with the Library. The particular version of the Library with which the Combined Work was made is also called the “Linked Version”.
 
-### 2.1. Grant of License
+The “Minimal Corresponding Source” for a Combined Work means the Corresponding Source for the Combined Work, excluding any source code for portions of the Combined Work that, considered in isolation, are based on the Application, and not on the Linked Version.
 
-Subject to the terms and conditions of this License, C4T hereby grants You a royalty-free, worldwide, non-exclusive, non-transferable, non-sub-licensable right to use, reproduce, modify, create derivative works based on, and distribute the Licensed Software or derivative works, only for use within the Camino Ecosystem, including for internal development, testing, and research purposes.
+The “Corresponding Application Code” for a Combined Work means the object code and/or source code for the Application, including any data and utility programs needed for reproducing the Combined Work from the Application, but excluding the System Libraries of the Combined Work.
 
-### 2.2. Ecosystem Restriction
+1. Exception to Section 3 of the GNU GPL.
+You may convey a covered work under sections 3 and 4 of this License without being bound by section 3 of the GNU GPL.
 
-**ANY USE OUTSIDE THE CAMINO ECOSYSTEM IS PROHIBITED, UNLESS SEPARATELY AUTHORIZED IN WRITING BY C4T.** This includes, but is not limited to, use with any forked or cloned blockchain network or infrastructure that replicates or competes with the Camino Network.
+2. Conveying Modified Versions.
+If you modify a copy of the Library, and, in your modifications, a facility refers to a function or data to be supplied by an Application that uses the facility (other than as an argument passed when the facility is invoked), then you may convey a copy of the modified version:
 
-## 3. LICENSE RESTRICTIONS
+a) under this License, provided that you make a good faith effort to ensure that, in the event an Application does not supply the function or data, the facility still operates, and performs whatever part of its purpose remains meaningful, or
+b) under the GNU GPL, with none of the additional permissions of this License applicable to that copy.
+3. Object Code Incorporating Material from Library Header Files.
+The object code form of an Application may incorporate material from a header file that is part of the Library. You may convey such object code under terms of your choice, provided that, if the incorporated material is not limited to numerical parameters, data structure layouts and accessors, or small macros, inline functions and templates (ten or fewer lines in length), you do both of the following:
 
-You must not, directly or indirectly:
+a) Give prominent notice with each copy of the object code that the Library is used in it and that the Library and its use are covered by this License.
+b) Accompany the object code with a copy of the GNU GPL and this license document.
+4. Combined Works.
+You may convey a Combined Work under terms of your choice that, taken together, effectively do not restrict modification of the portions of the Library contained in the Combined Work and reverse engineering for debugging such modifications, if you also do each of the following:
 
-a. Use the Licensed Software outside the Camino Ecosystem or in connection with any third-party blockchain, infrastructure or technology stack that is not expressly approved by C4T;
+a) Give prominent notice with each copy of the Combined Work that the Library is used in it and that the Library and its use are covered by this License.
+b) Accompany the Combined Work with a copy of the GNU GPL and this license document.
+c) For a Combined Work that displays copyright notices during execution, include the copyright notice for the Library among these notices, as well as a reference directing the user to the copies of the GNU GPL and this license document.
+d) Do one of the following:
+0) Convey the Minimal Corresponding Source under the terms of this License, and the Corresponding Application Code in a form suitable for, and under terms that permit, the user to recombine or relink the Application with a modified version of the Linked Version to produce a modified Combined Work, in the manner specified by section 6 of the GNU GPL for conveying Corresponding Source.
+1) Use a suitable shared library mechanism for linking with the Library. A suitable mechanism is one that (a) uses at run time a copy of the Library already present on the user's computer system, and (b) will operate properly with a modified version of the Library that is interface-compatible with the Linked Version.
+e) Provide Installation Information, but only if you would otherwise be required to provide such information under section 6 of the GNU GPL, and only to the extent that such information is necessary to install and execute a modified version of the Combined Work produced by recombining or relinking the Application with a modified version of the Linked Version. (If you use option 4d0, the Installation Information must accompany the Minimal Corresponding Source and Corresponding Application Code. If you use option 4d1, you must provide the Installation Information in the manner specified by section 6 of the GNU GPL for conveying Corresponding Source.)
+5. Combined Libraries.
+You may place library facilities that are a work based on the Library side by side in a single library together with other library facilities that are not Applications and are not covered by this License, and convey such a combined library under terms of your choice, if you do both of the following:
 
-b. Commercialize, rent, lease, sublicense, publish, sell or otherwise redistribute the Licensed Software or any derivative works outside of the Camino Ecosystem;
+a) Accompany the combined library with a copy of the same work based on the Library, uncombined with any other library facilities, conveyed under the terms of this License.
+b) Give prominent notice with the combined library that part of it is a work based on the Library, and explaining where to find the accompanying uncombined form of the same work.
+6. Revised Versions of the GNU Lesser General Public License.
+The Free Software Foundation may publish revised and/or new versions of the GNU Lesser General Public License from time to time. Such new versions will be similar in spirit to the present version, but may differ in detail to address new problems or concerns.
 
-c. Use the Licensed Software to develop or operate a competing network, protocol or messaging system;
+Each version is given a distinguishing version number. If the Library as you received it specifies that a certain numbered version of the GNU Lesser General Public License “or any later version” applies to it, you have the option of following the terms and conditions either of that published version or of any later version published by the Free Software Foundation. If the Library as you received it does not specify a version number of the GNU Lesser General Public License, you may choose any version of the GNU Lesser General Public License ever published by the Free Software Foundation.
 
-d. Remove or obscure any proprietary notices, disclaimers, copyright or trademark legends contained in or associated with the Licensed Software;
-
-e. Circumvent, disable or tamper with any technical protections or licensing enforcement mechanisms embedded in the Licensed Software; and/or
-
-f. Use the Licensed Software in any way that violates applicable laws or regulations, including those relating to data protection, export control or intellectual property.
-
-## 4. OPEN-SOURCE NOTICES
-
-### 4.1. Open-Source Components
-
-Certain components of the Licensed Software may be subject to open-source software licenses ("Open-Source Components"), which means any software license approved as an open-source license by the open-source initiative, or any substantially similar license, including any license that requires, as a condition of distribution of the software licensed under such license, that the distributor make the software available in source code format. The list of open-source components and their Licenses can be found in the public repositories at [https://github.com/chain4travel](https://github.com/chain4travel).
-
-### 4.2. License Conflicts
-
-To the extent there is a conflict between the license terms applicable to the Open-Source Components and this License, the terms of such licenses shall prevail over the terms of this License. To the extent the terms of the licenses applicable to the Open-Source Components prohibit any of the restrictions in this License concerning such Open-Source Components, such restrictions shall not apply concerning such Open-Source Components. To the extent that the terms of the licenses applicable to the Open-Source Components require You to make an offer to provide source code in connection with the Licensed Software, such offer is hereby made and you may exercise it by contacting [hello@chain4travel.com](mailto:hello@chain4travel.com?subject=Source%20code%20request).
-
-## 5. INTELLECTUAL PROPERTY
-
-### 5.1. Ownership
-
-The Licensed Software (including all updates, modifications and derivative works) and all intellectual property rights therein are and shall remain the sole and exclusive property of C4T or its licensors. No ownership or proprietary rights are transferred to you under this License.
-
-### 5.2. Trademarks
-
-You acknowledge and agree that all C4T trademarks, service marks, trade names and logos, whether registered or not, are the exclusive property of C4T and may not be used without C4T's prior written consent.
-
-## 6. SOFTWARE UPDATES
-
-C4T may from time to time, at its sole discretion, provide bug fixes, updates, upgrades, and other modifications to the Licensed Software ("Updates"). Unless provided under a separate license, all Updates are subject to the terms of this License.
-
-## 7. TERMINATION
-
-This License may be terminated immediately if You breach any provision. Upon termination, You must cease all use of and destroy all copies of the Licensed Software. Provisions relating to intellectual property, restrictions, liability, and governing law shall survive termination.
-
-## 8. PROHIBITED CONTENT
-
-Chain4Travel AG does not monitor, control, moderate or have the technical capacity to modify or remove any data or content submitted, stored, or transmitted through the Camino Network or Camino Messenger by third parties.
-
-Users, developers, and other third parties are strictly prohibited from submitting, storing, transmitting, or otherwise providing any "personal data", as defined under the EU General Data Protection Regulation (GDPR) or any other relevant data protection laws, via the Camino Network or Camino Messenger.
-
-**ANY PARTY UPLOADING OR TRANSMITTING SUCH PERSONAL DATA SHALL BE SOLELY RESPONSIBLE FOR ENSURING FULL COMPLIANCE WITH ALL APPLICABLE LAWS AND SHALL INDEMNIFY, DEFEND, AND HOLD HARMLESS CHAIN4TRAVEL AG, ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AFFILIATES FROM AND AGAINST ANY AND ALL CLAIMS, LIABILITIES, LOSSES, DAMAGES, FINES, PENALTIES, OR EXPENSES (INCLUDING REASONABLE LEGAL FEES) ARISING FROM OR RELATING TO SUCH ACTIONS.**
-
-You acknowledge and agree that:
-
-1. Chain4Travel AG has no control over any content submitted by third parties and assumes no responsibility or liability for such content;
-2. All content or transactions on the blockchain are irreversible and cannot be deleted or changed;
-3. Messages sent via the Camino Messenger may be routed through decentralized infrastructure beyond the control of Chain4Travel AG; and
-4. Chain4Travel AG makes no representations or warranties regarding the legality, accuracy, or appropriateness of any user-submitted content.
-
-You are solely responsible for ensuring that your use complies with all relevant laws, including, without limitation, data protection regulations.
-
-## 9. DISCLAIMERS AND LIMITATIONS ON LIABILITY
-
-### 9.1. As-Is Basis
-
-**THE LICENSED SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, AND NO WARRANTY, EITHER EXPRESS OR IMPLIED, IS GIVEN. YOUR USE OF THE LICENSED SOFTWARE IS AT YOUR SOLE RISK.** C4T HEREBY DISCLAIMS ALL WARRANTIES AND CONDITIONS, EXPRESS OR IMPLIED, INCLUDING (WITHOUT LIMITATION) WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, AND TITLE.
-
-### 9.2. No Representations
-
-C4T MAKES NO REPRESENTATIONS, WARRANTIES, GUARANTEES, OR UNDERTAKINGS, EXPRESS OR IMPLIED, CONCERNING THE CAMINO NETWORK OR ANY SOFTWARE, CONTENT, AND ACTIVITIES, INCLUDING BUT NOT LIMITED TO WARRANTIES OF COMPLIANCE, ACCURACY, RELIABILITY, VALIDITY, MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, QUALITY, AVAILABILITY, DURABILITY, AND NON-INFRINGEMENT, OR THAT ANY OF THE FOREGOING WILL BE UNINTERRUPTED, ERROR-FREE, FREE OF HARMFUL COMPONENTS OR SECURE. C4T SHALL NOT BE LIABLE FOR ANY ACTIONS, PROCEEDINGS, CLAIMS, DAMAGES, EXPENSES, OR OTHER LIABILITIES, WHETHER IN CONTRACT, TORT, OR OTHERWISE, ARISING OUT OF, RELATED TO, OR IN CONNECTION WITH THE CAMINO NETWORK OR SOFTWARE, CONTENT, AND ACTIVITIES, OR THE USE OR OTHER DEALINGS IN OR WITH ANY OF THEM, OR RELIANCE THEREON.
-
-### 9.3. No Warranties
-
-C4T does not warrant that:
-
-1. Licensed Software will meet your specific requirements;
-2. Your use of the Licensed Software will be uninterrupted, timely, secure, or error-free;
-3. The results that may be obtained from the use of the Licensed Software will be accurate or reliable; or
-4. Any errors in the Licensed Software will be corrected.
-
-### 9.4. Limitation of Liability
-
-**YOU EXPRESSLY UNDERSTAND AND AGREE THAT NEITHER C4T NOR ITS DIRECTORS, EMPLOYEES, AGENTS, SUPPLIERS, AND/OR AFFILIATES SHALL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR EXEMPLARY DAMAGES**, INCLUDING BUT NOT LIMITED TO, DAMAGES FOR LOSS OF PROFITS, GOODWILL, USE, DATA OR OTHER INTANGIBLE LOSSES (EVEN IF C4T HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES), RELATING TO THE LICENSED SOFTWARE, INCLUDING BUT NOT LIMITED TO:
-
-1. The use or inability to use the Licensed Software;
-2. Unauthorized access to or alteration of your transmissions or data;
-3. Statements or conduct of third parties on the Licensed Software; or
-4. Any other matter relating to the Licensed Software.
-
-### 9.5. Right to Modify
-
-C4T reserves the right at any time and from time to time to modify or discontinue, temporarily or permanently, the Licensed Software (or any part thereof) with or without notice. C4T shall not be liable to you or any third party for any modification, price change, suspension, or discontinuance of the Licensed Software.
-
-### 9.6. No Financial Liability
-
-**C4T HAS NO FINANCIAL LIABILITY TO THE LARGEST EXTENT PERMISSIBLE UNDER APPLICABLE LAW.**
-
-## 10. MISCELLANEOUS
-
-### 10.1. Independent Contractors
-
-The parties are independent contractors. This License is an agreement at arms' length between the parties and does not constitute a partnership, association, or joint venture under any applicable law. Consequently, the provisions of this License shall not, under any circumstances, be interpreted as creating any such relationship between the parties. Neither party may bind the other in any manner whatsoever or in favour of anyone whatsoever.
-
-### 10.2. No Waiver
-
-The failure of any of the parties to avail itself or to enforce any of the provisions of this License or any rights with respect thereto shall in no way be considered to be a waiver of such provisions or rights, or in any way to affect the validity of this License, no waiver shall be effective unless expressly made in writing and signed by an authorized representative of the waiving party.
-
-### 10.3. Severability
-
-If any provision of this License is held to be void, invalid, or inoperative, the remaining provisions of this License shall not be affected and shall continue to be in effect, and the invalid provision shall be deemed modified to the least degree necessary to remedy such invalidity.
-
-### 10.4. Assignment
-
-You may not assign, delegate, or transfer any rights or obligations under this License. Any such attempted assignment, delegation, or transfer shall be null and void. C4T reserves the right to assign, delegate, or transfer this License or any rights and/or obligations hereunder without restriction, including without limitation to affiliates or subsidiaries.
-
-### 10.5. Headings
-
-The headings used herein are inserted only as a matter of convenience and for reference only. They shall not affect the construction or interpretation of this License.
-
-### 10.6. Updates to License
-
-C4T may update this License from time to time. These changes are effective immediately after they are posted.
-
-## 11. APPLICABLE LAW AND JURISDICTION
-
-### 11.1. Governing Law
-
-This License shall be governed by and construed by the substantive laws of Switzerland without any reference to its conflict of law provisions. The provisions of the United Nations Convention on Contracts for the International Sale of Goods (CISG) shall not apply.
-
-### 11.2. Jurisdiction
-
-Any disputes arising out of or in connection with this License and contracts entered into thereunder shall be submitted to the sole and exclusive jurisdiction of the courts of the city of Zug.
+If the Library as you received it specifies that a proxy can decide whether future versions of the GNU Lesser General Public License shall apply, that proxy's public statement of acceptance of any version is permanent authorization for you to choose that version for the Library.
